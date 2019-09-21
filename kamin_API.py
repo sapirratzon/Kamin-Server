@@ -23,13 +23,15 @@ def add_comment():
     try:
         comment = request.form.get('comment', type=str)
         discussion = discussion_controller.get_discussion(comment.discussion_id)
-        discussion.add_comment(discussion)
+        analyzed_data = discussion_controller.add_comment(discussion,comment)
+
 
     except IOError as e:
         app.logger.exception(e)
         abort(400)
+        return
 
-    return "Success"
+    return jsonify(analyzed_data)
 
 
 if __name__ == '__main__':

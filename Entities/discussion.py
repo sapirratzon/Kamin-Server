@@ -7,6 +7,7 @@ class Discussion:
         Discussion.total_id += 1
         self._category = []
         self._comments = []
+        self._analysis_data = None
 
     @property
     def id(self):
@@ -28,5 +29,17 @@ class Discussion:
     def comments(self):
         return self._comments
 
+    @comments.setter
+    def comments(self, input_comments):
+        self._comments = input_comments
+
     def add_comment(self, comment):
         self._comments.append(comment)
+
+    @property
+    def analysis_data(self):
+        return self._analysis_data
+
+    @analysis_data.setter
+    def analysis_data(self, data):
+        self._analysis_data = data
