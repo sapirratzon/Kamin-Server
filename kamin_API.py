@@ -1,5 +1,5 @@
-from flask import Flask
-from flask import request
+from flask import Flask, abort, request, jsonify
+from Controllers import discussion_controller
 
 app = Flask(__name__)
 
@@ -8,21 +8,27 @@ app = Flask(__name__)
 def get_discussion():
     try:
         discussion_id = request.form.get('discussion_id', type=str)
+        discussion = discussion_controller.get_discussion(discussion_id)
 
     except IOError as e:
         app.logger.exception(e)
-        return "No such file or directory"
-    return "Success"
+        abort(400)
+        return
+
+    return jsonify(discussion)
 
 
 @app.route('/addComment', methods=['POST'])
 def add_comment():
     try:
         comment = request.form.get('comment', type=str)
+        discussion = discussion_controller.get_discussion(comment.discussion_id)
+        discussion.add_comment(discussion)
 
     except IOError as e:
         app.logger.exception(e)
-        return "No such file or directory"
+        abort(400)
+
     return "Success"
 
 
