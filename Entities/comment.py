@@ -1,4 +1,4 @@
-class Comment:
+class Comment():
     total_id = 0
 
     def __init__(self, user_name, content, commented_to, discussion_id, time=None):
@@ -8,8 +8,15 @@ class Comment:
         self._content = ""
         self._commented_to = None
         self._discussion_id = ""
-        self._depth = commented_to.depth
+        self._actions = []
+        self._tags = []
+
+        if not commented_to is None and not commented_to == "":
+            self._depth = commented_to.depth
+        else:
+            self._depth = 0
         self._time = time
+
 
     @property
     def id(self):
@@ -66,3 +73,28 @@ class Comment:
     @time.setter
     def time(self, input_time):
         self._time = input_time
+
+    def serialize(self):
+        return self.__dict__
+
+    @property
+    def actions(self):
+        return self._actions
+
+    @actions.setter
+    def actions(self, input_comment_actions):
+        self._actions = input_comment_actions
+
+    def add_action(self, action):
+        self._actions.append(action)
+
+    @property
+    def tags(self):
+        return self._tags
+
+    @tags.setter
+    def tags(self, input_comment_tags):
+        self._tags = input_comment_tags
+
+    def addtag(self, comment_tag):
+        self._tags.append(comment_tag)

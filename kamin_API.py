@@ -1,4 +1,4 @@
-from flask import Flask, abort, request, jsonify
+from flask import Flask, abort, request, jsonify, json
 from Controllers import discussion_controller
 
 app = Flask(__name__)
@@ -23,7 +23,7 @@ def add_comment():
     try:
         comment = request.form.get('comment', type=str)
         discussion = discussion_controller.get_discussion(comment.discussion_id)
-        analyzed_data = discussion_controller.add_comment(discussion,comment)
+        analyzed_data = discussion_controller.add_comment(discussion, comment)
 
 
     except IOError as e:
@@ -31,7 +31,7 @@ def add_comment():
         abort(400)
         return
 
-    return jsonify(analyzed_data)
+    return analyzed_data.__dict__
 
 
 if __name__ == '__main__':

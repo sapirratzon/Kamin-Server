@@ -9,7 +9,7 @@ class AnalysisData:
         # general actions for discussion
         self._general_actions = []
 
-        # list of actions for each comment <comment,[actions]>
+        # list of actions for each comment <commentId,[actions]>
         self._comment_actions = {}
 
         # we probably won't need this but just in case
@@ -55,6 +55,8 @@ class AnalysisData:
             self.comment_actions[comment] = []
         self.comment_actions[comment].append(actions)
 
+    def serialize(self):
+        return self.__dict__
 
 class CommentAction(Enum):
     BoldComment = 1
