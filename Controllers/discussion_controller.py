@@ -3,7 +3,7 @@ from Entities.discussion import Discussion
 
 
 # TODO: implement reading discussion from file
-def get_discussion(id=0):
+def get_discussion(id=0, ):
     return Discussion()
 
 

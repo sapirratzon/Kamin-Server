@@ -1,100 +1,83 @@
-class Comment():
+class Comment:
     total_id = 0
 
-    def __init__(self, user_name, content, commented_to, discussion_id, time=None):
-        self._id = Comment.total_id
+    def __init__(self, author, text, parent, discussion_id, time_stamp=None):
+        self.id = Comment.total_id
         Comment.total_id += 1
-        self._user_name = ""
-        self._content = ""
-        self._commented_to = None
-        self._discussion_id = ""
-        self._actions = []
-        self._tags = []
-
-        if not commented_to is None and not commented_to == "":
-            self._depth = commented_to.depth
+        self.author = author
+        self.text = text
+        self.parent = None
+        self.discussion_id = discussion_id
+        # extra_data dict_keys(['file:line', 'subreddit', 'from_kind', 'from', 'title', 'num_comments', 'subreddit_id',
+        # 'downs', 'saved', 'from_id', 'permalink', 'name', 'url', 'ups'])
+        self.extra_data = {}
+        self.actions = []
+        self.labels = []
+        if not parent is None and not parent == "":
+            self.depth = parent.depth + 1
         else:
-            self._depth = 0
-        self._time = time
+            self.depth = 0
+        self.time_stamp = time_stamp
 
-
-    @property
-    def id(self):
+    def get_id(self):
         return self.id
 
-    @id.setter
-    def id(self, input_id):
-        self._id = input_id
+    def set_id(self, input_id):
+        self.id = input_id
 
-    @property
-    def user_name(self):
-        return self.user_name
+    def get_author(self):
+        return self.author
 
-    @user_name.setter
-    def user_name(self, name):
-        self._user_name = name
+    def set_author(self, name):
+        self.author = name
 
-    @property
-    def content(self):
-        return self._content
+    def get_text(self):
+        return self.text
 
-    @content.setter
-    def content(self, input_content):
-        self._content = input_content
+    def set_text(self, input_text):
+        self.text = input_text
 
-    @property
-    def commented_to(self):
-        return self._commented_to
+    def get_parent(self):
+        return self.parent
 
-    @commented_to.setter
-    def commented_to(self, comment):
-        self.commented_to = comment
+    def set_parent(self, comment):
+        self.parent = comment
 
-    @property
-    def discussion_id(self):
-        return self._discussion_id
+    def get_discussion_id(self):
+        return self.discussion_id
 
-    @discussion_id.setter
-    def discussion_id(self, input_id):
-        self._discussion_id = input_id
+    def set_discussion_id(self, input_id):
+        self.discussion_id = input_id
 
-    @property
-    def depth(self):
+    def get_depth(self):
         return self.depth
 
-    @depth.setter
-    def depth(self, input_depth):
-        self._depth = input_depth
+    def set_depth(self, input_depth):
+        self.depth = input_depth
 
-    @property
-    def time(self):
-        return self._time
+    def get_time_stamp(self):
+        return self.time_stamp
 
-    @time.setter
-    def time(self, input_time):
-        self._time = input_time
+    def set_time_stamp(self, input_time_stamp):
+        self.time_stamp = input_time_stamp
 
     def serialize(self):
         return self.__dict__
 
-    @property
-    def actions(self):
-        return self._actions
+    def get_actions(self):
+        return self.actions
 
-    @actions.setter
-    def actions(self, input_comment_actions):
-        self._actions = input_comment_actions
+    def set_actions(self, input_comment_actions):
+        self.actions = input_comment_actions
 
     def add_action(self, action):
-        self._actions.append(action)
+        self.actions.append(action)
 
-    @property
-    def tags(self):
-        return self._tags
+    def get_labels(self):
+        return self.labels
 
-    @tags.setter
-    def tags(self, input_comment_tags):
-        self._tags = input_comment_tags
+    def set_labels(self, input_comment_labels):
+        self.labels = input_comment_labels
 
-    def addtag(self, comment_tag):
-        self._tags.append(comment_tag)
+    def add_label(self, comment_tag):
+        self.labels.append(comment_tag)
