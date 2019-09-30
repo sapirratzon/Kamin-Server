@@ -1,6 +1,5 @@
 import collections
 
-
 class Discussion:
     # TODO: Consider to use uuid - id generator in advanced phases
     total_id = 0
@@ -32,8 +31,8 @@ class Discussion:
     def get_comments(self):
         return self.comments
 
-    def set_comments(self, input_comments):
-        self.comments = input_comments
+    def set_comments(self, input_comment):
+        self.comments = input_comment # change to add comment
 
     def get_comment(self, comment_id):
         return self.comments[comment_id]
@@ -53,8 +52,11 @@ class Discussion:
     def get_branches(self):
         return self.branches
 
-    def set_branch(self, branches):
+    def set_branches(self, branches):
         self.branches = branches
+
+    def set_branch(self, branch_index, branch):
+        self.branches[branch_index] = branch
 
     def get_branch(self, branch_index):
         return self.branches[branch_index]
@@ -67,3 +69,5 @@ class Discussion:
 
     def serialize(self):
         return self.__dict__
+
+
