@@ -1,4 +1,7 @@
 import collections
+from flask import json, jsonify
+
+from Entities.comment import Comment
 
 
 class Discussion:
@@ -12,7 +15,7 @@ class Discussion:
         # pointer to comments in tree
         self.branches = []
         # dict of {comment_id: comment object}
-        self.comments = collections.OrderedDict()
+        self.comments = {}
         self.actions = []
         # currently we won't use this
         self.analysis_data = None
@@ -40,6 +43,24 @@ class Discussion:
 
     def add_comment(self, comment):
         self.comments[comment.id] = comment
+        branch_to_add = []
+        index = 0
+        for branch in self.branches:
+            if len(branch) >= comment.depth and branch[comment.parent.depth].id == comment.parent.id:
+                if len(branch) == comment.depth:
+                    branch.append(comment)
+                    # Todo: in the future here update conversation in db
+                    return branch, index
+
+                else:
+                    branch_to_add = branch.slice[:comment.depth]
+                    branch_to_add.append(comment)
+                    break
+            index += 1
+        if len(branch_to_add) > 0:
+            self.branches.append(branch_to_add)
+            # Todo: in the future here update conversation in db
+        return branch_to_add, len(self.branches)
 
     def get_actions(self):
         return self.actions
@@ -65,5 +86,20 @@ class Discussion:
     def set_analysis_data(self, data):
         self.analysis_data = data
 
-    def serialize(self):
-        return self.__dict__
+    def to_json(self):
+        return jsonify(id=self.id,
+                       categories=[c.__dict__ for c in self.categories],
+                       branches=[[comment.to_dict() for comment in branch] for branch in self.branches],
+                       comments_list=[comment.to_dict() for comment in self.comments.values()],
+                       comments_dict={comment.id: comment.to_dict() for comment in self.comments.values()},
+                       actions=[a.__dict__ for a in self.actions]
+                       )
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "categories": self.categories,
+            "branches": [[comment.to_dict() for comment in branch] for branch in self.branches],
+            "comments": self.comments.values(),
+            "actions": self.actions
+        }

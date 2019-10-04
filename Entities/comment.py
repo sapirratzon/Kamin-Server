@@ -1,3 +1,6 @@
+from flask import json, jsonify
+
+
 class Comment:
     total_id = 0
 
@@ -13,7 +16,7 @@ class Comment:
         self.extra_data = {}
         self.actions = []
         self.labels = []
-        if not parent is None and not parent == "":
+        if isinstance(parent, Comment):
             self.depth = parent.depth + 1
         else:
             self.depth = 0
@@ -81,3 +84,26 @@ class Comment:
 
     def add_label(self, comment_tag):
         self.labels.append(comment_tag)
+
+    def to_json(self):
+        return jsonify(id=self.id,
+                       author=self.author,
+                       text=self.text,
+                       parent_id=self.parent.id if self.parent is not None else "",
+                       disscussion_id=self.discussion_id,
+                       depth=self.depth,
+                       # actions=[a.__dict__ for a in self.actions],
+                       time_stamp=self.time_stamp)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "author": self.author,
+            "text": self.text,
+            "parentId": self.parent.id if isinstance(self.parent, Comment) else "",
+            "discussionId": self.discussion_id,
+            "depth": self.depth,
+            "time_stamp": self.time_stamp,
+            "labels": self.labels,
+            "actions": self.actions
+        }
