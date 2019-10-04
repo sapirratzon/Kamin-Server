@@ -67,9 +67,9 @@ def extract_networks_from_trees(list_of_trees, list_of_network_types, output_fil
     with open(output_file_path, 'w') as out:
         for tree in list_of_trees:
             total_branches = len(get_branches(tree))
-            out.write(tree['node']['id']+'\t'+str(total_branches)+':\n')
+            out.write(tree['node']['id'] + '\t' + str(total_branches) + ':\n')
             if 'DA' in list_of_network_types:
-                out.write('\t'+'DA:\n')
+                out.write('\t' + 'DA:\n')
                 da_matrix = answers_matrix(tree)
                 out.write(print_matrix(da_matrix, '\t\t'))
             if 'QU' in list_of_network_types:
@@ -83,7 +83,7 @@ def extract_networks_from_trees(list_of_trees, list_of_network_types, output_fil
     return
 
 
-def print_networks_from_tree(tree, out_dir, list_of_network_types = ['DA', 'QU', 'MN']):
+def print_networks_from_tree(tree, out_dir, list_of_network_types=['DA', 'QU', 'MN']):
     """
     Receives a Tree, and prints all it's networks into distinct files to the given output directory
 
@@ -131,7 +131,7 @@ def print_networks_from_tree(tree, out_dir, list_of_network_types = ['DA', 'QU',
                 print_edgelist(edgelist, os.path.join(out_dir, filename))
 
 
-def translate_matrix_to_edgelist(matrix, weighted_output = False):
+def translate_matrix_to_edgelist(matrix, weighted_output=False):
     """
     Receives a matrix and converts it to edge-list (list of 3-val tuples).
 
@@ -162,7 +162,7 @@ def translate_matrix_to_edgelist(matrix, weighted_output = False):
 def print_edgelist(edgelist, filename):
     with open(filename, 'w') as out:
         for (user1, user2, meta) in edgelist:
-            out.write(user1+'\t'+user2+'\t'+str(meta)+'\n')
+            out.write(user1 + '\t' + user2 + '\t' + str(meta) + '\n')
 
 
 def get_node_address(tree, node):
@@ -211,8 +211,8 @@ def print_matrix(matrix, prefix=''):
     out_strings.append(prefix + 'tree:\n')
     for user1 in matrix['tree_map']:
         for (user2, timestamp) in matrix['tree_map'][user1]:
-            out_strings.append(prefix + '\t' + user1 + '\t' + user2 + '\t' + str(timestamp)+'\n')
-    out_strings.append((prefix+'branches:\n'))
+            out_strings.append(prefix + '\t' + user1 + '\t' + user2 + '\t' + str(timestamp) + '\n')
+    out_strings.append((prefix + 'branches:\n'))
     for (branch_counter, branch_map) in enumerate(matrix['per_branch']):
         if branch_map:
             out_strings.append(prefix + '\t' + str(branch_counter) + ':\n')
@@ -306,7 +306,7 @@ def answers_matrix(tree):
         for reply_counter, reply in enumerate(branch):
             if reply_counter == 0:
                 continue
-            previous_reply = branch[reply_counter-1]
+            previous_reply = branch[reply_counter - 1]
             user1 = reply[author_node]
             user2 = previous_reply[author_node]
             timestamp = reply[timestamp_node]
@@ -361,7 +361,7 @@ def quotes_matrix(tree):
         for _counter, _reply in enumerate(_branch):
             if _counter >= _max > 0:
                 break
-            _quote_itself = re.compile(r'<quote>\s*'+re.escape(_quoted_text)+r'\s*</quote>', re.MULTILINE)
+            _quote_itself = re.compile(r'<quote>\s*' + re.escape(_quoted_text) + r'\s*</quote>', re.MULTILINE)
             _text = _reply[text_node]
             _author = _reply[author_node]
             if _quoted_text in _text and _quote_itself.match(_text) is None:
@@ -453,7 +453,7 @@ def find_avg_length_top_k_distinct_branches(tree, list_of_ks):
         for j, br in enumerate(branches_copy):
             others = list(branches_copy)
             others.pop(j)
-            d = _find_distance(br, others)*mpmath.mpf(len(br)-1)
+            d = _find_distance(br, others) * mpmath.mpf(len(br) - 1)
             if d > m:
                 m = d
                 chosen = j
@@ -481,16 +481,16 @@ def get_tree_stats(tree, params=None):
     """
     if params is None:
         params = {
-                    'nodes_count': True,
-                    'branches_count': True,
-                    'users_count': True,
-                    'branching_factor': True,
-                    'median_branch_length': True,
-                    'median_number_of_comments_per_user': True,
-                    'avg_length_top_k_branches': [1, 3, 5],
-                    'avg_comments_top_k_users': [1, 3, 5],
-                    'avg_length_top_k_distinct_branches': [5, 7]
-                }
+            'nodes_count': True,
+            'branches_count': True,
+            'users_count': True,
+            'branching_factor': True,
+            'median_branch_length': True,
+            'median_number_of_comments_per_user': True,
+            'avg_length_top_k_branches': [1, 3, 5],
+            'avg_comments_top_k_users': [1, 3, 5],
+            'avg_length_top_k_distinct_branches': [5, 7]
+        }
     basic_stats = _traverse_and_gather_stats(tree)
     full_stats = {}
 
@@ -499,7 +499,9 @@ def get_tree_stats(tree, params=None):
     nodes_count = basic_stats["nodes_count"]
     branches_lens = [len(br) for br in branches]
     branching_factor = 0 if nodes_count == 1 else float(nodes_count - 1) / (nodes_count - branches_count)
-    users_comment_counts_unf = [_value["comments_count"] if _key != "[deleted]" or _key != "[removed]" else None for _key, _value in basic_stats["user_stats"].items()]  # we don't count users named 'deleted' or 'removed'
+    users_comment_counts_unf = [_value["comments_count"] if _key != "[deleted]" or _key != "[removed]" else None for
+                                _key, _value in
+                                basic_stats["user_stats"].items()]  # we don't count users named 'deleted' or 'removed'
     users_comment_counts = [n for n in users_comment_counts_unf if n is not None]  # filter out bad users
     users_count = len(users_comment_counts)
     avg_branch_length = (sum(branches_lens) * 1.0) / len(branches_lens)
@@ -553,9 +555,9 @@ def create_list_of_trees_statistics(list_of_trees, out_stats_file):
     with open(out_stats_file, 'w', encoding="utf-8") as out:
         header = True
         for tree in list_of_trees:
-            #if tree['node']['author'] == '[deleted]' or tree['node']['author'] == '[removed]':
+            # if tree['node']['author'] == '[deleted]' or tree['node']['author'] == '[removed]':
             #    continue
-            #if tree['node']['text'] == '[deleted]' or tree['node']['text'] == '[removed]':
+            # if tree['node']['text'] == '[deleted]' or tree['node']['text'] == '[removed]':
             #    continue
             stats = get_tree_stats(tree)
             counter += 1
@@ -567,7 +569,7 @@ def create_list_of_trees_statistics(list_of_trees, out_stats_file):
                 for key, value in stats.items():
                     if type(value) is dict:
                         for k, k_val in value.items():
-                            header_str += ','+key+'_'+str(k)
+                            header_str += ',' + key + '_' + str(k)
                     else:
                         header_str += ',' + key
                 header_str += '\n'
@@ -581,7 +583,7 @@ def create_list_of_trees_statistics(list_of_trees, out_stats_file):
             wr.writerow([text])
             escaped_text = output.getvalue().strip()
 
-            stats_str += ','+escaped_text
+            stats_str += ',' + escaped_text
             for key, value in stats.items():
                 if type(value) is dict:
                     for k, k_val in value.items():
@@ -697,10 +699,12 @@ def create_cat_regex_dict(liwc_cat_dict):
 
 
 liwc_regex_dict = create_cat_regex_dict(load_category_dict())
+
+
 def get_liwc_cats(text):
     global liwc_regex_dict
     return Counter({cat: len(regex.findall(text.lower())) for cat, regex
-            in liwc_regex_dict.items() if regex.findall(text.lower())})
+                    in liwc_regex_dict.items() if regex.findall(text.lower())})
 
 
 def text_to_liwc(text):
@@ -840,7 +844,7 @@ def check_tree_integrity(golden_trees, test_trees):
         print("Computing Test Tree Statistics: ")
         print(get_tree_stats(test_tree))
         node_ids = []
-        traverse_tree_preorder(golden_tree, lambda tree_node : node_ids.append(tree_node['node']['id']))
+        traverse_tree_preorder(golden_tree, lambda tree_node: node_ids.append(tree_node['node']['id']))
         print('Golden Tree Preorder Nodes: ')
         print('Total nodes: %d' % len(node_ids))
         print('Unique nodes: %d' % len(set(node_ids)))
@@ -871,10 +875,10 @@ def create_bundles(trees_file_fn, required_tree_ids, out_path):
             branches = get_branches(tree)  # this returns a list of branches, where each branch is a list of nodes,
             # the nodes like in GitHub readme where I describe Json tree
             for i, branch in enumerate(branches):
-                out_fn = '%s_%d_%d.txt' %(tree['node']['id'],i,len(branch))
-                outfile = open(out_path+ out_fn, 'w')
+                out_fn = '%s_%d_%d.txt' % (tree['node']['id'], i, len(branch))
+                outfile = open(out_path + out_fn, 'w')
                 for j, node in enumerate(branch):
-                    text = '%d.\t%s\t:>>>\t%s\n' %(j,node['author'], node['text'])
+                    text = '%d.\t%s\t:>>>\t%s\n' % (j, node['author'], node['text'])
                     outfile.write(text.encode('utf-8'))
                 outfile.close()
                 print('DONE ' + out_fn)
@@ -889,19 +893,19 @@ def get_longest_branhces_by_fn(path, suffix='txt', n=1, tree_ids=None):
     :param tree_ids: if not None, gets longest branches only for the specified trees. Default=None.
     :return: a list of file names, each file corresponds to a branch.
     """
-    files = [fn for fn in os.listdir(path) if fn[-len(suffix):]==suffix]
+    files = [fn for fn in os.listdir(path) if fn[-len(suffix):] == suffix]
     branches_d = defaultdict(list)
-    for fn in files:   #6zq9km_392_7.txt
+    for fn in files:  # 6zq9km_392_7.txt
         tree_id, branch_id, l = fn.split('.')[0].split('_')
         if not tree_ids or tree_id in tree_ids:
-            branches_d[tree_id]+=[(branch_id, int(l))]
+            branches_d[tree_id] += [(branch_id, int(l))]
     for k, a in branches_d.items():
         branches_d[k] = sorted(a, key=lambda x: x[1], reverse=True)
-    return ['%s_%s_%d.%s' %(k,a[i][0],a[i][1],suffix) \
-                for k, a in branches_d.items() for i in range(0,n)]
+    return ['%s_%s_%d.%s' % (k, a[i][0], a[i][1], suffix) \
+            for k, a in branches_d.items() for i in range(0, n)]
 
 
-def translate_list_of_trees(trees, out_file = None):
+def translate_list_of_trees(trees, out_file=None):
     """
     Another preprocessing step.
     Is used to go over a Trees in 'in_file', which are the result of 'CleanAndUnify' function, and translates
@@ -910,6 +914,7 @@ def translate_list_of_trees(trees, out_file = None):
     :param out_file: Output list of trees, that is to be consistent and good to use with the TreeTools package.
     :return: None
     """
+
     def translate(d):
         nodeName = 'node'
         if nodeName in d:
@@ -917,8 +922,9 @@ def translate_list_of_trees(trees, out_file = None):
                 if key in d[nodeName]:
                     # double check needed because we dynamically modify the dictionary, however .keys() returns a static copy
                     # see if need to rename anything
-                    rename = {"from": ["created_utc"],"to": "timestamp"}
-                    move = {"not" : ["text", "timestamp", "id", "created_utc", "author", "extra_data", "labels"], "to" : "extra_data"}
+                    rename = {"from": ["created_utc"], "to": "timestamp"}
+                    move = {"not": ["text", "timestamp", "id", "created_utc", "author", "extra_data", "labels"],
+                            "to": "extra_data"}
                     for src in rename['from']:
                         if (key == src):
                             dest = rename['to']
@@ -926,6 +932,7 @@ def translate_list_of_trees(trees, out_file = None):
                     if move["to"] not in d[nodeName]: d[nodeName][move["to"]] = {}
                     if (key not in move["not"]): d[nodeName][move["to"]][key] = d[nodeName].pop(key)
         return
+
     trees = load_list_of_trees(trees)
     if out_file:
         with open(out_file, 'w') as out:

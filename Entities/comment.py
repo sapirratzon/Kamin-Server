@@ -1,26 +1,28 @@
+from datetime import datetime
+
 from flask import json, jsonify
 
 
 class Comment:
     total_id = 0
 
-    def __init__(self, author, text, parent, discussion_id, time_stamp=None):
+    def __init__(self, *args, **kwargs):
         self.id = Comment.total_id
         Comment.total_id += 1
-        self.author = author
-        self.text = text
-        self.parent = None
-        self.discussion_id = discussion_id
-        # extra_data dict_keys(['file:line', 'subreddit', 'from_kind', 'from', 'title', 'num_comments', 'subreddit_id',
-        # 'downs', 'saved', 'from_id', 'permalink', 'name', 'url', 'ups'])
-        self.extra_data = {}
-        self.actions = []
-        self.labels = []
-        if isinstance(parent, Comment):
-            self.depth = parent.depth + 1
-        else:
-            self.depth = 0
-        self.time_stamp = time_stamp
+        self.author = kwargs.get('author', '')
+        self.text = kwargs.get('text', '')
+        self.parent_id = kwargs.get('parent_id', '')
+        self.discussion_id = kwargs.get('discussion_id', '')
+        self.extra_data = kwargs.get('extra_data', {})
+        self.actions = kwargs.get('actions', [])
+        self.labels = kwargs.get('labels', [])
+        self.depth = kwargs.get('depth', 0)
+        self.time_stamp = kwargs.get('time_stamp', datetime.now())
+
+    """
+    extra_data dict_keys(['file:line', 'subreddit', 'from_kind', 'from', 'title', 'num_comments', 'subreddit_id',
+    'downs', 'saved', 'from_id', 'permalink', 'name', 'url', 'ups'])
+    """
 
     def get_id(self):
         return self.id
@@ -40,11 +42,11 @@ class Comment:
     def set_text(self, input_text):
         self.text = input_text
 
-    def get_parent(self):
-        return self.parent
+    def get_parent_id(self):
+        return self.parent_id
 
-    def set_parent(self, comment):
-        self.parent = comment
+    def set_parent_id(self, parnet_id):
+        self.parent_id = parnet_id
 
     def get_discussion_id(self):
         return self.discussion_id
@@ -89,7 +91,7 @@ class Comment:
         return jsonify(id=self.id,
                        author=self.author,
                        text=self.text,
-                       parent_id=self.parent.id if self.parent is not None else "",
+                       parent_id=self.parent_id,
                        disscussion_id=self.discussion_id,
                        depth=self.depth,
                        # actions=[a.__dict__ for a in self.actions],
@@ -100,10 +102,22 @@ class Comment:
             "id": self.id,
             "author": self.author,
             "text": self.text,
-            "parentId": self.parent.id if isinstance(self.parent, Comment) else "",
+            "parentId": self.parent_id,
             "discussionId": self.discussion_id,
             "depth": self.depth,
             "time_stamp": self.time_stamp,
             "labels": self.labels,
             "actions": self.actions
         }
+
+
+class CommentNode(Comment):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.child_comments = kwargs.get('child_comments', [])
+
+    def get_child_comments(self):
+        return self.child_comments
+
+    def set_child_comments(self, children):
+        self.child_comments = children

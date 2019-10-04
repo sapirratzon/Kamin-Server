@@ -1,12 +1,32 @@
 import TreeTools as tt
-import Entities.discussion as disc
-import Entities.comment as comm
+from Entities.discussion import *
+from Entities.comment import *
 import collections
 
 
+def tree_to_discussion(discussion_path, discussion_id):
+    trees = tt.load_list_of_trees(discussion_path)
+    tree = trees[discussion_id]
+    discussion = DiscussionTree()
+    # print(tree['children'])
+    for child_tree in tree['children']:
+        print(child_tree)
+
+    # print(tree['node']['author'])
+    # root_node = tree['node']
+    # root_comment = CommentNode(author=tree['node']['author'], text=tree['node']['text'], parent_id=-1,
+    #                            discussion_id=discussion_id, extra_data=tree['node']['extra_data'],
+    #                            labels=tree['node']['labels'] if tree['node'].__contains__('labels') else None,
+    #                            depth=0,
+    #                            time_stamp=tree['node']['timestamp']
+    #                            )
+    # discussion.set_root_comment(root_comment)
+    # print(discussion)
 
 def update_discussion_branches(discussion_path, discussion_id):
-    discussion = disc.Discussion()
+
+    discussion = Discussion()
+
     trees = tt.load_list_of_trees(discussion_path)
     tree = trees[discussion_id]
     branches = tt.get_branches(tree)
@@ -15,7 +35,7 @@ def update_discussion_branches(discussion_path, discussion_id):
     for branch in branches:
         parent = None
         for node in branch:
-            comment = comm.Comment(node['author'], node['text'], parent, discussion_id, node['timestamp'])
+            comment = comment.Comment(node['author'], node['text'], parent, discussion_id, node['timestamp'])
             parent = comment
             comments[comment.get_id()] = comment
 
@@ -23,10 +43,11 @@ def update_discussion_branches(discussion_path, discussion_id):
     return comments
 
 
-path = 'D:\\Studies\\BGU\\FinalProject\\treetools\\80919_labeled_trees.txt'
-comments = update_discussion_branches(path, 0)
+path = 'C:\\Users\\ronel\\PycharmProjects\\TreeTools\\80919_labeled_trees.txt'
+tree_to_discussion(discussion_path=path, discussion_id=0)
 
-print(comments)
+# comments = update_discussion_branches(path, 0)
+# print(comments)
 
 # branch = branches[0]
 # branch1 = branches[1]
