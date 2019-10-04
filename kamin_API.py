@@ -1,7 +1,7 @@
 from flask import Flask, abort, request, jsonify, json
 from json import JSONEncoder, JSONDecoder
 from Controllers import discussion_controller
-
+from Entities.comment import *
 
 app = Flask(__name__)
 
@@ -9,22 +9,22 @@ app = Flask(__name__)
 @app.route('/getDiscussion/<int:discussion_id>', methods=['GET'])
 def get_discussion(discussion_id):
     try:
-        mockup = True
-        discussion = discussion_controller.get_discussion(discussion_id)
+        mockup = False
+        discussion = discussion_controller.get_discussion_tree_tools(discussion_id)
         if mockup:
             discussion = discussion_controller.get_mock_discussion()
-
-        return discussion.to_json()
+        discussion_json_dict = discussion.to_json_dict()
+        return jsonify(discussion=discussion_json_dict['discussion'], tree=discussion_json_dict['tree'])
     except IOError as e:
         app.logger.exception(e)
         abort(400)
         return
 
 
-@app.route('/addComment/<Comment:comment>', methods=['POST'])
+@app.route('/addComment/<string:comment>', methods=['POST'])
 def add_comment(comment):
     try:
-        discussion = discussion_controller.get_discussion(comment.discussion_id)
+        discussion = discussion_controller.get_discussion_tree_tools(comment.discussion_id)
         comment_node = discussion.add_comment(comment)
         discussion_controller.analyze_discussion(discussion, comment_node)
 

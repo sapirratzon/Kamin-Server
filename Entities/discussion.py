@@ -46,6 +46,7 @@ class Discussion:
 
     def add_comment(self, comment):
         self.comments_dict[comment.id] = comment
+        self.comments_list.append(comment)
 
     def get_actions(self):
         return self.actions
@@ -56,39 +57,55 @@ class Discussion:
     def add_action(self, action):
         self.actions.append(action)
 
-    def to_json(self):
-        return jsonify(id=self.id,
-                       categories=[c.__dict__ for c in self.categories],
-                       comments_list=[comment.to_dict() for comment in self.comments_dict.values()],
-                       comments_dict={comment.id: comment.to_dict() for comment in self.comments_dict.values()},
-                       actions=[a.__dict__ for a in self.actions]
-                       )
+    # def to_json(self):
+    #     return jsonify(id=self.id,
+    #                    categories=[c.__dict__ for c in self.categories],
+    #                    comments_list=[comment.to_dict() for comment in self.comments_dict.values()],
+    #                    comments_dict={comment.id: comment.to_dict() for comment in self.comments_dict.values()},
+    #                    actions=[a.__dict__ for a in self.actions]
+    #                    )
 
     def to_dict(self):
-        return {
-            "id": self.id,
-            "categories": self.categories,
-            "branches": [[comment.to_dict() for comment in branch] for branch in self.branches],
-            "comments": self.comments_dict.values(),
-            "actions": self.actions
-        }
+        return {'id': self.id,
+                'categories': [c.__dict__ for c in self.categories],
+                'comments_list': [comment.to_dict() for comment in self.comments_dict.values()],
+                'comments_dict': {comment.id: comment.to_dict() for comment in
+                                  self.comments_dict.values()},
+                'actions': [a.__dict__ for a in self.actions]
+                }
 
 
 class DiscussionTree(Discussion):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.root_comment = kwargs.get('root_comment', None)
+        tree = kwargs.get('tree', None)
+        if tree != None:
+            json_dict_to_discussion_tree(tree, self)
 
     def get_root_comment(self):
         return self.root_comment
 
     def set_root_comment(self, comment):
         self.root_comment = comment
+        self.comments_list.append(comment)
+        self.comments_dict[comment.get_id()] = comment
 
     def add_comment(self, comment):
         super().add_comment(comment)
         parent_comment = self.comments_dict[comment.parent_id]
-        parent_comment.add(comment)
+        parent_comment.get_child_comments().append(comment)
 
-    def to_json(self):
-        discussion = super().to_json()
+    def to_json_dict(self):
+        discussion = self.to_dict()
+        discussion_json_tree = tree_to_json(self.root_comment)
+        return {'discussion': discussion, 'tree': discussion_json_tree}
+
+
+def json_dict_to_discussion_tree(root_tree, discussion):
+    discussion.set_root_comment(root_tree['id'])
+
+
+def tree_to_json(comment_node):
+    return {'node': comment_node.to_dict(),
+            'children': [tree_to_json(child) for child in comment_node.get_child_comments()]}

@@ -107,8 +107,15 @@ class Comment:
             "depth": self.depth,
             "time_stamp": self.time_stamp,
             "labels": self.labels,
-            "actions": self.actions
+            "actions": self.actions,
+            "extra_data": self.extra_data
         }
+
+    def get_depth_space(self):
+        space = ""
+        for i in range(1, self.get_depth()):
+            space += "      "
+        return space
 
 
 class CommentNode(Comment):
@@ -121,3 +128,8 @@ class CommentNode(Comment):
 
     def set_child_comments(self, children):
         self.child_comments = children
+
+    def __str__(self):
+        return self.get_depth_space() + str(self.id) + ". " + self.author + ": " + str(
+            self.get_time_stamp()) + ", depth = " + str(self.get_depth()) + ", parent id = " + str(
+            self.parent_id)
