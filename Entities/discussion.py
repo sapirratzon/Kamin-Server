@@ -15,7 +15,7 @@ class Discussion:
         # pointer to comments in tree
         self.branches = []
         # dict of {comment_id: comment object}
-        self.comments = {}
+        self.comments = collections.OrderedDict()
         self.actions = []
         # currently we won't use this
         self.analysis_data = None
@@ -74,8 +74,11 @@ class Discussion:
     def get_branches(self):
         return self.branches
 
-    def set_branch(self, branches):
+    def set_branches(self, branches):
         self.branches = branches
+
+    def set_branch(self, branch_index, branch):
+        self.branches[branch_index] = branch
 
     def get_branch(self, branch_index):
         return self.branches[branch_index]
