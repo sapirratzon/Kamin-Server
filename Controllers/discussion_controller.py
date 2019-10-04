@@ -87,17 +87,12 @@ def get_depth_space(comment):
 
 def printInorder(comment_node):
     if comment_node:
-        # First recur on left child
         for child_comment in comment_node.get_child_comments():
             printInorder(comment_node)
 
-        # then print the data of node
         print(get_depth_space(comment_node) + str(comment_node.id) + ". " + comment_node.author + ":" + str(
             comment_node.get_time_stamp()) + ", depth = " + str(comment_node.get_depth()) + ", parent id = " + str(
             comment_node.parent_id))
-
-        # now recur on right child
-        # printInorder(comment_node.right)def
 
 
 def print_in_order(comment_node):
