@@ -11,28 +11,29 @@ def get_discussion_tree_tools(discussion_id=0,
                               discussion_path='C:\\Users\\ronel\\PycharmProjects\\Kamin-Server\\80919_labeled_trees.txt'):
     trees = tt.load_list_of_trees(discussion_path)
     root_tree = trees[discussion_id]
-    discussion_tree = DiscussionTree()
-    root_comment = CommentNode(author=root_tree['node']['author'], text=root_tree['node']['text'], parent_id=-1,
+    discussion_tree = DiscussionTree(id=discussion_id)
+    root_comment = CommentNode(author=root_tree['node']['author'], id=root_tree['node']['id'],
+                               text=root_tree['node']['text'], parent_id=-1,
                                discussion_id=discussion_id, extra_data=root_tree['node']['extra_data'],
-                               labels=root_tree['node']['labels'] if root_tree['node'].__contains__('labels') else None,
+                               labels=root_tree['node']['labels'] if 'labels' in root_tree['node'] else None,
                                depth=0,
                                time_stamp=datetime.fromtimestamp(root_tree['node']['timestamp'])
                                )
     discussion_tree.set_root_comment(root_comment)
-    [add_comments_in_order(child, discussion_tree, root_comment.get_id(), 1) for child in root_tree['children']]
+    [traverse_add_comments(child, discussion_tree, root_comment.get_id(), 1) for child in root_tree['children']]
     return discussion_tree
 
 
-def add_comments_in_order(comment_tree, discussion_tree, parent_id, depth):
-    comment_node = CommentNode(author=comment_tree['node']['author'], text=comment_tree['node']['text'],
+def traverse_add_comments(comment_tree, discussion_tree, parent_id, depth):
+    comment_node = CommentNode(author=comment_tree['node']['author'], id=comment_tree['node']['id'],
+                               text=comment_tree['node']['text'],
                                parent_id=parent_id, discussion_id=discussion_tree.get_id(),
                                extra_data=comment_tree['node']['extra_data'],
-                               labels=comment_tree['node']['labels'] if comment_tree['node'].__contains__(
-                                   'labels') else None,
+                               labels=comment_tree['node']['labels'] if 'labels' in comment_tree['node'] else None,
                                depth=depth, time_stamp=datetime.fromtimestamp(comment_tree['node']['timestamp'])
                                )
     discussion_tree.add_comment(comment_node)
-    [add_comments_in_order(child, discussion_tree, comment_node.get_id(), depth + 1) for child in
+    [traverse_add_comments(child, discussion_tree, comment_node.get_id(), depth + 1) for child in
      comment_tree['children']]
 
 
@@ -54,9 +55,10 @@ def get_mock_discussion():
     trees = tt.load_list_of_trees(discussion_path)
     tree = trees[discussion_id]
     discussion_tree = DiscussionTree()
-    root_comment = CommentNode(author=tree['node']['author'], text=tree['node']['text'], parent_id=-1,
+    root_comment = CommentNode(author=tree['node']['author'], id=tree['node']['id'],
+                               text=tree['node']['text'], parent_id=-1,
                                discussion_id=discussion_id, extra_data=tree['node']['extra_data'],
-                               labels=tree['node']['labels'] if tree['node'].__contains__('labels') else None,
+                               labels=tree['node']['labels'] if 'labels' in tree['node'] else None,
                                depth=0,
                                time_stamp=datetime.fromtimestamp(tree['node']['timestamp'])
                                )
@@ -67,7 +69,7 @@ def get_mock_discussion():
         comment_node = CommentNode(
             author=node['author'], text=node['text'], parent_id=root_comment.get_id(),
             discussion_id=discussion_id, extra_data=node['extra_data'],
-            labels=node['labels'] if node.__contains__('labels') else None,
+            labels=node['labels'] if 'labels' in node else None,
             depth=1,
             time_stamp=datetime.fromtimestamp(node['timestamp'])
         )
@@ -85,17 +87,7 @@ def get_mock_discussion():
             discussion_tree.add_comment(comment_node_child)
         comment_node.child_comments.sort(key=lambda c: c.get_time_stamp())
     root_comment.child_comments.sort(key=lambda c: c.get_time_stamp())
-    """
-    [print(get_depth_space(comment) + str(comment.id) + ". " + comment.author + ":" + str(
-        comment.get_time_stamp()) + ", depth = " + str(comment.get_depth()) + ", parent id = " + str(comment.parent_id))
-     for comment in discussionTree.comments_list]
-    print("\n~~~~~~~~~After Sort By Time Stamp~~~~~~~~~\n")
-    [print(get_depth_space(comment) + str(comment.id) + ". " + comment.author + ":" + str(
-        comment.get_time_stamp()) + ", depth = " + str(comment.get_depth()) + ", parent id = " + str(comment.parent_id))
-     for comment in discussion_tree.comments_list]
-        """
-    print("\n~~~~~~~~~~~~Traverse In Order~~~~~~~~~~~~~\n")
-    traverse_in_order(discussion_tree.root_comment)
+    print_traverse_in_order(discussion_tree.root_comment)
 
     return discussion_tree
 
@@ -107,13 +99,12 @@ def get_depth_space(comment):
     return space
 
 
-def traverse_in_order(comment_node):
+def print_traverse_in_order(comment_node):
     print(comment_node)
-    [traverse_in_order(node) for node in comment_node.child_comments]
+    [print_traverse_in_order(node) for node in comment_node.child_comments]
 
-
-# discussion = get_discussion()
-# traverse_in_order(discussion.get_root_comment())
+# discussion = get_discussion_tree_tools()
+# print_traverse_in_order(discussion.get_root_comment())
 # print(discussion.to_json_dict())
 #     print(child_comments[0].get_time_stamp())
 #     print(round(child_comments[0].get_time_stamp().timestamp()))

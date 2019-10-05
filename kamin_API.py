@@ -9,10 +9,14 @@ app = Flask(__name__)
 @app.route('/getDiscussion/<int:discussion_id>', methods=['GET'])
 def get_discussion(discussion_id):
     try:
-        mockup = False
-        discussion = discussion_controller.get_discussion_tree_tools(discussion_id)
-        if mockup:
+        if discussion_id > 45 and discussion_id != 777:
+            raise IOError
+        # 777 is mock up code
+        if discussion_id == 777:
             discussion = discussion_controller.get_mock_discussion()
+        else:
+            discussion = discussion_controller.get_discussion_tree_tools(discussion_id)
+
         discussion_json_dict = discussion.to_json_dict()
         return jsonify(discussion=discussion_json_dict['discussion'], tree=discussion_json_dict['tree'])
     except IOError as e:
@@ -22,7 +26,7 @@ def get_discussion(discussion_id):
 
 
 @app.route('/addComment/<string:comment>', methods=['POST'])
-def add_comment(comment):
+def add_comment(comment: Comment):
     try:
         discussion = discussion_controller.get_discussion_tree_tools(comment.discussion_id)
         comment_node = discussion.add_comment(comment)

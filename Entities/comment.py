@@ -7,8 +7,12 @@ class Comment:
     total_id = 0
 
     def __init__(self, *args, **kwargs):
-        self.id = Comment.total_id
-        Comment.total_id += 1
+        id = kwargs.get('id', None)
+        if id is not None:
+            self.id = id
+        else:
+            self.id = Comment.total_id
+            Comment.total_id += 1
         self.author = kwargs.get('author', '')
         self.text = kwargs.get('text', '')
         self.parent_id = kwargs.get('parent_id', '')
@@ -87,15 +91,11 @@ class Comment:
     def add_label(self, comment_tag):
         self.labels.append(comment_tag)
 
-    def to_json(self):
-        return jsonify(id=self.id,
-                       author=self.author,
-                       text=self.text,
-                       parent_id=self.parent_id,
-                       disscussion_id=self.discussion_id,
-                       depth=self.depth,
-                       # actions=[a.__dict__ for a in self.actions],
-                       time_stamp=self.time_stamp)
+    def get_extra_data(self):
+        return self.extra_data
+
+    def set_extra_data(self, extra_data):
+        self.extra_data = extra_data
 
     def to_dict(self):
         return {
@@ -117,6 +117,11 @@ class Comment:
             space += "      "
         return space
 
+    def __str__(self):
+        return self.get_depth_space() + str(self.id) + ", " + self.author + ": " + str(
+            self.get_time_stamp()) + ", depth = " + str(self.get_depth()) + ", parent id = " + str(
+            self.parent_id)
+
 
 class CommentNode(Comment):
     def __init__(self, *args, **kwargs):
@@ -128,8 +133,3 @@ class CommentNode(Comment):
 
     def set_child_comments(self, children):
         self.child_comments = children
-
-    def __str__(self):
-        return self.get_depth_space() + str(self.id) + ". " + self.author + ": " + str(
-            self.get_time_stamp()) + ", depth = " + str(self.get_depth()) + ", parent id = " + str(
-            self.parent_id)

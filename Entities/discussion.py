@@ -9,8 +9,13 @@ class Discussion:
     total_id = 0
 
     def __init__(self, *args, **kwargs):
-        self.id = Discussion.total_id
-        Discussion.total_id += 1
+        id = kwargs.get('id', None)
+        if id is not None:
+            self.id = id
+        else:
+            self.id = Discussion.total_id
+            Discussion.total_id += 1
+        self.title = kwargs.get('title', "")
         self.categories = kwargs.get('categories', [])
         self.comments_list = kwargs.get('comments_list', [])
         # dict of {comment_id: comment object}
@@ -57,20 +62,14 @@ class Discussion:
     def add_action(self, action):
         self.actions.append(action)
 
-    # def to_json(self):
-    #     return jsonify(id=self.id,
-    #                    categories=[c.__dict__ for c in self.categories],
-    #                    comments_list=[comment.to_dict() for comment in self.comments_dict.values()],
-    #                    comments_dict={comment.id: comment.to_dict() for comment in self.comments_dict.values()},
-    #                    actions=[a.__dict__ for a in self.actions]
-    #                    )
-
     def to_dict(self):
-        return {'id': self.id,
+        return {
+                'id': self.id,
                 'categories': [c.__dict__ for c in self.categories],
-                'comments_list': [comment.to_dict() for comment in self.comments_dict.values()],
-                'comments_dict': {comment.id: comment.to_dict() for comment in
-                                  self.comments_dict.values()},
+                # 'comments_list': [comment.to_dict() for comment in self.comments_dict.values()],
+                # 'comments_dict': {comment.id: comment.to_dict() for comment in
+                #                   self.comments_dict.values()},
+                'title': self.title,
                 'actions': [a.__dict__ for a in self.actions]
                 }
 
@@ -90,6 +89,9 @@ class DiscussionTree(Discussion):
         self.root_comment = comment
         self.comments_list.append(comment)
         self.comments_dict[comment.get_id()] = comment
+        if 'title' in comment.extra_data:
+            self.title = comment.get_extra_data()['title']
+
 
     def add_comment(self, comment):
         super().add_comment(comment)
