@@ -25,11 +25,13 @@ def get_discussion(discussion_id):
         return
 
 
-@app.route('/addComment/<string:comment>', methods=['POST'])
+@app.route('/addComment/<json:comment>', methods=['POST'])
 def add_comment(comment: Comment):
     try:
         discussion = discussion_controller.get_discussion_tree_tools(comment.discussion_id)
-        comment_node = discussion.add_comment(comment)
+        # create commentNode from comment
+        comment_node = CommentNode()
+        discussion.add_comment(comment_node)
         discussion_controller.analyze_discussion(discussion, comment_node)
 
     except IOError as e:

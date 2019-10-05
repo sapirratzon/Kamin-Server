@@ -8,7 +8,7 @@ from TreeTools import TreeTools as tt
 
 # TODO: implement reading discussion from file
 def get_discussion_tree_tools(discussion_id=0,
-                              discussion_path='C:\\Users\\ronel\\PycharmProjects\\Kamin-Server\\80919_labeled_trees.txt'):
+                              discussion_path='resources\\discussions\\80919_labeled_trees.txt'):
     trees = tt.load_list_of_trees(discussion_path)
     root_tree = trees[discussion_id]
     discussion_tree = DiscussionTree(id=discussion_id)
@@ -49,7 +49,7 @@ def add_comment(discussion, comment):
 
 
 def get_mock_discussion():
-    discussion_path = 'C:\\Users\\ronel\\PycharmProjects\\Kamin-Server\\80919_labeled_trees.txt'
+    discussion_path = 'resources\\discussions\\80919_labeled_trees.txt'
     # discussion_path = os.path.abs(__file__)
     discussion_id = 0
     trees = tt.load_list_of_trees(discussion_path)
@@ -86,8 +86,8 @@ def get_mock_discussion():
             )
             discussion_tree.add_comment(comment_node_child)
         comment_node.child_comments.sort(key=lambda c: c.get_time_stamp())
-    root_comment.child_comments.sort(key=lambda c: c.get_time_stamp())
     print_traverse_in_order(discussion_tree.root_comment)
+    root_comment.child_comments.sort(key=lambda c: c.get_time_stamp())
 
     return discussion_tree
 
@@ -103,6 +103,7 @@ def print_traverse_in_order(comment_node):
     print(comment_node)
     [print_traverse_in_order(node) for node in comment_node.child_comments]
 
+# get_mock_discussion()
 # discussion = get_discussion_tree_tools()
 # print_traverse_in_order(discussion.get_root_comment())
 # print(discussion.to_json_dict())

@@ -1,7 +1,7 @@
 import collections
 from flask import json, jsonify
 
-from Entities.comment import Comment
+from Entities.comment import Comment, CommentNode
 
 
 class Discussion:
@@ -92,8 +92,7 @@ class DiscussionTree(Discussion):
         if 'title' in comment.extra_data:
             self.title = comment.get_extra_data()['title']
 
-
-    def add_comment(self, comment):
+    def add_comment(self, comment: CommentNode):
         super().add_comment(comment)
         parent_comment = self.comments_dict[comment.parent_id]
         parent_comment.get_child_comments().append(comment)
