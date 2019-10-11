@@ -35,6 +35,7 @@ def traverse_add_comments(comment_tree, discussion_tree, parent_id, depth):
     discussion_tree.add_comment(comment_node)
     [traverse_add_comments(child, discussion_tree, comment_node.get_id(), depth + 1) for child in
      comment_tree['children']]
+    print_traverse_in_order(discussion_tree.root_comment)
 
 
 # TODO: understand how to analyze data
@@ -85,6 +86,17 @@ def get_mock_discussion():
                 time_stamp=datetime.fromtimestamp(node['timestamp'])
             )
             discussion_tree.add_comment(comment_node_child)
+            for sub_sub_sub_tree in sub_sub_tree['children']:
+                node = sub_sub_sub_tree['node']
+                sub_comment_node_child = CommentNode(
+                    author=node['author'], text=node['text'], parent_id=comment_node.get_id(),
+                    discussion_id=discussion_id, extra_data=node['extra_data'],
+                    labels=node['labels'] if node.__contains__('labels') else None,
+                    depth=3,
+                    time_stamp=datetime.fromtimestamp(node['timestamp'])
+                )
+                discussion_tree.add_comment(sub_comment_node_child)
+            comment_node_child.child_comments.sort(key=lambda c: c.get_time_stamp())
         comment_node.child_comments.sort(key=lambda c: c.get_time_stamp())
     print_traverse_in_order(discussion_tree.root_comment)
     root_comment.child_comments.sort(key=lambda c: c.get_time_stamp())
