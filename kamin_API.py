@@ -1,5 +1,4 @@
 from flask import Flask, abort, request, jsonify, json
-from json import JSONEncoder, JSONDecoder
 from Controllers import discussion_controller
 from Entities.comment import *
 
@@ -25,8 +24,8 @@ def get_discussion(discussion_id):
         return
 
 
-@app.route('/addComment/<json:comment>', methods=['POST'])
-def add_comment(comment: Comment):
+@app.route('/addComment/<int:comment>', methods=['POST'])
+def add_comment(comment: int):
     try:
         discussion = discussion_controller.get_discussion_tree_tools(comment.discussion_id)
         # create commentNode from comment
