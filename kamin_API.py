@@ -1,8 +1,10 @@
 from flask import Flask, abort, request, jsonify, json
+from flask_cors import CORS
 from Controllers import discussion_controller
 from Entities.comment import *
 
 app = Flask(__name__)
+CORS(app)
 
 
 @app.route('/getDiscussion/<int:discussion_id>', methods=['GET'])
