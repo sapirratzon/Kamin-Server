@@ -1,5 +1,3 @@
-import collections
-from flask import json, jsonify
 
 from Entities.comment import Comment, CommentNode
 
@@ -79,7 +77,7 @@ class DiscussionTree(Discussion):
         super().__init__(*args, **kwargs)
         self.root_comment = kwargs.get('root_comment', None)
         tree = kwargs.get('tree', None)
-        if tree != None:
+        if tree is not None:
             json_dict_to_discussion_tree(tree, self)
 
     def get_root_comment(self):
@@ -96,6 +94,11 @@ class DiscussionTree(Discussion):
         super().add_comment(comment)
         parent_comment = self.comments_dict[comment.parent_id]
         parent_comment.get_child_comments().append(comment)
+        print("bla")
+
+    def build_discussion(self):
+        pass
+    #build the discussion from root node
 
     def to_json_dict(self):
         discussion = self.to_dict()

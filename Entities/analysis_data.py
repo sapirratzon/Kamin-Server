@@ -1,10 +1,11 @@
 from enum import Enum
+from Entities.comment import CommentNode
 
 
 class AnalysisData:
 
-    def __init__(self, discussion_id, triggering_comment):
-        self._discussion_id = discussion_id
+    def __init__(self, triggering_comment):
+        self._discussion_id = triggering_comment.get_discussion_id()
         self._triggered_by = triggering_comment
         # general actions for discussion
         self._general_actions = []
