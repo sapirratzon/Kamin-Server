@@ -56,7 +56,7 @@ def get_mock_discussion():
     trees = tt.load_list_of_trees(discussion_path)
     tree = trees[discussion_id]
     discussion_tree = DiscussionTree()
-    root_comment = CommentNode(author=tree['node']['author'], id=tree['node']['id'],
+    root_comment = CommentNode(author=tree['node']['author'],
                                text=tree['node']['text'], parent_id=-1,
                                discussion_id=discussion_id, extra_data=tree['node']['extra_data'],
                                labels=tree['node']['labels'] if 'labels' in tree['node'] else None,
