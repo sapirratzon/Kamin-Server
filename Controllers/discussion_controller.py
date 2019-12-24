@@ -77,21 +77,21 @@ def get_mock_discussion():
         discussion_tree.add_comment(comment_node)
 
         for sub_sub_tree in sub_tree['children']:
-            node = sub_sub_tree['node']
+            sub_node = sub_sub_tree['node']
             comment_node_child = CommentNode(
-                author=node['author'], text=node['text'], parent_id=comment_node.get_id(),
-                discussion_id=discussion_id, extra_data=node['extra_data'],
-                labels=node['labels'] if node.__contains__('labels') else None,
+                author=sub_node['author'], text=sub_node['text'], parent_id=comment_node.get_id(),
+                discussion_id=discussion_id, extra_data=sub_node['extra_data'],
+                labels=sub_node['labels'] if sub_node.__contains__('labels') else None,
                 depth=2,
                 time_stamp=datetime.fromtimestamp(node['timestamp'])
             )
             discussion_tree.add_comment(comment_node_child)
             for sub_sub_sub_tree in sub_sub_tree['children']:
-                node = sub_sub_sub_tree['node']
+                sub_sub_node = sub_sub_sub_tree['node']
                 sub_comment_node_child = CommentNode(
-                    author=node['author'], text=node['text'], parent_id=comment_node.get_id(),
-                    discussion_id=discussion_id, extra_data=node['extra_data'],
-                    labels=node['labels'] if node.__contains__('labels') else None,
+                    author=sub_sub_node['author'], text=sub_sub_node['text'], parent_id=comment_node_child.get_id(),
+                    discussion_id=discussion_id, extra_data=sub_sub_node['extra_data'],
+                    labels=sub_sub_node['labels'] if sub_sub_node.__contains__('labels') else None,
                     depth=3,
                     time_stamp=datetime.fromtimestamp(node['timestamp'])
                 )
