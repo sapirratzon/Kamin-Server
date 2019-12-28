@@ -18,17 +18,20 @@ class DBManagement:
 
     def create_discussion(self, discussion):
         result = self.discussion_col.insert_one(discussion.to_dict())
-        discussion.set_id(result.inserted_id.binary)
-        return result.inserted_id.binary
+        discussion.set_id(result.inserted_id.binary.hex())
+        return result.inserted_id.binary.hex()
 
     def get_discussion(self, discussion_id):
-        discussion = self.discussion_col.find({"_id": ObjectId(discussion_id)})
-        comments = self.comment_col.find({"discussion_id": discussion_id})
-        return discussion, comments
+        discussion = self.discussion_col.find_one({"_id": ObjectId(discussion_id)})
+        comments = self.comment_col.find({"discussionId": discussion_id})
+        comments_dict = {}
+        for comment in comments:
+            comments_dict[comment["_id"].binary.hex()] = comment
+        return discussion, comments_dict
 
     def add_comment(self, comment):
         result = self.comment_col.insert_one(comment.to_dict())
-        comment_id = result.inserted_id.binary
+        comment_id = result.inserted_id.binary.hex()
         comment.set_id(comment_id)
         discussion = self.discussion_col.find_one({'_id': ObjectId(comment.get_discussion_id())})
         # discussion = self.discussion_col.find({"_id": comment.get_discussion_id()})
@@ -41,5 +44,11 @@ class DBManagement:
             child_ids.append(comment.get_id())
             comment_col.update_one({"_id": ObjectId(comment.get_parent_id())}, {"$set": {"child_comments": child_ids}})
 
-        return result.inserted_id.binary
+        return result.inserted_id.binary.hex()
+
+
+    def get_discussions_id(self):
+        discussions = self.discussion_col.find_one({"_id": ObjectId('5e077362aa3027839b9278a6')})
+        comments = self.comment_col.find({}, {"_id": 1})
+        return discussions
 

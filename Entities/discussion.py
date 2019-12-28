@@ -48,7 +48,7 @@ class Discussion:
         return self.comments_dict[comment_id]
 
     def add_comment(self, comment):
-        self.comments_dict[comment.id] = comment
+        self.comments_dict[comment._id] = comment
         self.comments_list.append(comment)
 
     def get_actions(self):
