@@ -1,4 +1,5 @@
 from Controllers.discussion_controller import DiscussionController
+from Controllers.user_controller import UserController
 from Entities.comment import *
 from datetime import datetime
 import TreeTools.TreeTools as tt
@@ -39,9 +40,22 @@ def get_discussion_from_db():
     return dc.get_discussion(id)
 
 
-#create_discussion_on_db()
+def add_new_user():
+    user_controller = UserController()
+    return user_controller.add_new_user("gal21", "1234", "gal", "Esco")
 
+
+def get_user():
+    user_controller = UserController()
+    return user_controller.get_user("gal21")
+
+
+# create_discussion_on_db()
 discussion = get_discussion_from_db()
+json_dict = discussion.to_json_dict()
+# user_id = add_new_user()
+# user = get_user()
+# val = user.verify_password("1234")
 print("bla")
 
 

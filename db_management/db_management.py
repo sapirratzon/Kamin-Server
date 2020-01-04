@@ -30,11 +30,10 @@ class DBManagement:
         return discussion, comments_dict
 
     def add_comment(self, comment):
-        result = self.comment_col.insert_one(comment.to_dict())
+        result = self.comment_col.insert_one(comment.to_db_dict())
         comment_id = result.inserted_id.binary.hex()
         comment.set_id(comment_id)
         discussion = self.discussion_col.find_one({'_id': ObjectId(comment.get_discussion_id())})
-        # discussion = self.discussion_col.find({"_id": comment.get_discussion_id()})
         if discussion["root_comment_id"] is None:
             discussion_col.update_one({"_id": ObjectId(comment.get_discussion_id())}, {"$set": {"root_comment_id": comment_id}})
 
@@ -46,9 +45,10 @@ class DBManagement:
 
         return result.inserted_id.binary.hex()
 
+    def add_new_user(self, user):
+        result = self.user_col.insert_one(user.to_dict())
+        return result.inserted_id.binary.hex()
 
-    def get_discussions_id(self):
-        discussions = self.discussion_col.find_one({"_id": ObjectId('5e077362aa3027839b9278a6')})
-        comments = self.comment_col.find({}, {"_id": 1})
-        return discussions
-
+    def get_user(self, username):
+        user = self.user_col.find_one({'user_name': username})
+        return user

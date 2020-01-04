@@ -1,16 +1,15 @@
 from Entities.analysis_data import AnalysisData
 from Entities.comment import CommentNode
-from Entities.discussion import Discussion, DiscussionTree
 
 from db_management.db_management import DBManagement
-from Entities.real_time_discussion import Discussion, DiscussionTree
+from Entities.new_discussion import Discussion, DiscussionTree
 
 
 class DiscussionController:
 
     db_management = DBManagement()
 
-    def create_discussion(self, title, categories, root_comment_id):
+    def create_discussion(self, title, categories, root_comment_id=None):
         disc = Discussion(title=title, categories=categories, root_comment_id=root_comment_id)
         disc_id = self.db_management.create_discussion(disc)
         return disc_id
@@ -45,16 +44,22 @@ class DiscussionController:
                               time_stamp=comment_dict["time_stamp"], child_comments=child_list)
         return comment
 
-    def add_comment(self, comment):
-        comment_id = self.db_management.add_comment(comment)
+    def add_comment(self, comment_dict):
+        comment = CommentNode(author=comment_dict["author"], text=comment_dict["text"],
+                              parent_id=comment_dict["parentId"], discussion_id=comment_dict["discussionId"],
+                              extra_data=comment_dict["extra_data"], time_stamp=comment_dict["time_stamp"],
+                              depth=comment_dict["depth"], child_comments=[], actions=[], labels=[])
+        # Call KaminAI
         kamin_response = None
-        # Call KaminAI server
-        # kamin_ad = AnalysisData(comment)
-        # kamin_response = kamin_ad.comment_actions()
+        # kamin_analyzed_data = AnalysisData(comment)
+        # comment.set_actions(kamin_analyzed_data.get_comment_actions())
+        # comment.set_labels(kamin_analyzed_data.get_comment_labels())
+        comment_id = self.db_management.add_comment(comment)
         response = {"comment_id": comment_id,
                     "KaminAI result": kamin_response}
         return response
 
+    # To implement
     def get_discussions_id(self):
         discussions = self.db_management.get_discussions_id()
         return discussions

@@ -115,7 +115,7 @@ class CommentNode(Comment):
     def set_child_comments(self, children):
         self.child_comments = children
 
-    def to_dict(self):
+    def to_db_dict(self):
         return {
             "author": self.author,
             "text": self.text,
@@ -127,4 +127,17 @@ class CommentNode(Comment):
             "actions": self.actions,
             "extra_data": self.extra_data,
             "child_comments": self.child_comments
+        }
+
+    def to_client_dict(self):
+        return {
+            "author": self.author,
+            "text": self.text,
+            "parentId": self.parent_id,
+            "discussionId": self.discussion_id,
+            "depth": self.depth,
+            "time_stamp": self.time_stamp,
+            "labels": self.labels,
+            "actions": self.actions,
+            "extra_data": self.extra_data
         }

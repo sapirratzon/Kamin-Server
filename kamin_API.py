@@ -1,46 +1,128 @@
-from flask import Flask, abort, request, jsonify, json
+from flask import Flask, abort, request, jsonify, g, url_for
 from flask_cors import CORS
-from Controllers import discussion_controller
-from Entities.comment import *
+from flask_httpauth import HTTPBasicAuth
+from Controllers.discussion_controller import DiscussionController
+from Controllers.user_controller import UserController
+from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired)
 
+
+# initialization
 app = Flask(__name__)
 CORS(app)
+app.config['SECRET_KEY'] = 'the quick brown fox jumps over the lazy dog'
+
+# extensions
+auth = HTTPBasicAuth()
+user_controller = UserController()
+discussion_controller = DiscussionController()
 
 
-@app.route('/getDiscussion/<int:discussion_id>', methods=['GET'])
-def get_discussion(discussion_id):
+def verify_auth_token(token):
+    s = Serializer(app.config['SECRET_KEY'])
     try:
-        if discussion_id > 45 and discussion_id != 777:
-            raise IOError
-        # 777 is mock up code
-        if discussion_id == 777:
-            discussion = discussion_controller.get_mock_discussion()
-        else:
-            discussion = discussion_controller.get_discussion_tree_tools(discussion_id)
+        data = s.loads(token)
+    except SignatureExpired:
+        return None  # valid token, but expired
+    except BadSignature:
+        return None  # invalid token
+    user = user_controller.get_user(data['id'])
+    return user
 
-        discussion_json_dict = discussion.to_json_dict()
-        return jsonify(discussion=discussion_json_dict['discussion'], tree=discussion_json_dict['tree'])
+
+@auth.verify_password
+def verify_password(username_or_token, password):
+    user = verify_auth_token(username_or_token)
+    if not user:
+        user = user_controller.get_user(username=username_or_token)
+        if not user or not user.verify_password(password):
+            return False
+    g.user = user
+    return True
+
+
+@app.route('/api/newUser', methods=['POST'])
+def new_user():
+    username = request.json.get('username')
+    password = request.json.get('password')
+    first_name = request.json.get('first_name')
+    last_name = request.json.get('last_name')
+    if username is None or password is None:
+        abort(400) # missing arguments
+    if user_controller.get_user(username=username) is not None:
+        abort(400) # existing user
+    user_id = user_controller.add_new_user(username=username, password=password, first_name=first_name, last_name=last_name)
+    return jsonify({'user_id': user_id}), 201
+
+
+@app.route('/api/getUser', methods=['GET'])
+def get_user():
+    username = request.args.get('username')
+    user = user_controller.get_user(username=username)
+    if not user:
+        abort(400)
+    return jsonify({'username': user.get_user_name(), 'password': user.get_password(), 'first_name': user.get_first_name(), 'last_name': user.get_last_name()}), 201
+
+
+@app.route('/api/token')
+@auth.login_required
+def get_auth_token():
+    token = g.user.generate_auth_token(app.config['SECRET_KEY'], 600)
+    return jsonify({'token': token.decode('ascii'), 'duration': 600})
+
+
+@app.route('/api/resource')
+@auth.login_required
+def get_resource():
+    print("gal")
+    return jsonify({'data': 'Hello, %s!' % g.user.get_user_name()})
+
+
+@app.route('/api/createDiscussion', methods=['GET'])
+@auth.login_required
+def create_discussion():
+    try:
+        title = request.json.get('title')
+        categories = request.json.get('categories')
+        discussion_id = discussion_controller.create_discussion(title, categories)
+        return jsonify({'discussion': discussion_id}), 201
     except IOError as e:
         app.logger.exception(e)
         abort(400)
         return
 
 
-@app.route('/addComment/<int:comment>', methods=['POST'])
-def add_comment(comment: int):
+@app.route('/api/addComment', methods=['GET'])
+@auth.login_required
+def add_comment():
+    comment_dict = {}
     try:
-        discussion = discussion_controller.get_discussion_tree_tools(comment.discussion_id)
-        # create commentNode from comment
-        comment_node = CommentNode()
-        discussion.add_comment(comment_node)
-        discussion_controller.analyze_discussion(discussion, comment_node)
-
+        comment_dict["author"] = request.args.get('author')
+        comment_dict["text"] = request.args.get('text')
+        comment_dict["parentId"] = request.args.get('parentId')
+        comment_dict["discussionId"] = request.args.get('discussionId')
+        comment_dict["extra_data"] = request.args.get('extra_data')
+        comment_dict["time_stamp"] = request.args.get('time_stamp')
+        comment_dict["depth"] = request.args.get('depth')
+        response = discussion_controller.add_comment(comment_dict)
     except IOError as e:
         app.logger.exception(e)
         abort(400)
         return
 
-    return comment_node.get_actions()
+    return jsonify(response), 201
+
+
+@app.route('/api/getDiscussion', methods=['GET'])
+def get_discussion():
+    try:
+        discussion_id = request.args.get('discussion_id')
+        discussion_tree = discussion_controller.get_discussion(discussion_id)
+        discussion_json_dict = discussion_tree.to_json_dict()
+        return jsonify({"discussion": discussion_json_dict['discussion'], "tree": discussion_json_dict['tree']})
+    except IOError as e:
+        app.logger.exception(e)
+        abort(400)
+        return
 
 
 if __name__ == '__main__':

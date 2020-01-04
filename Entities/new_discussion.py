@@ -57,5 +57,5 @@ class DiscussionTree(Discussion):
 
 
 def tree_to_json(comment_node):
-    return {'node': comment_node.to_dict(),
+    return {'node': comment_node.to_client_dict(),
             'children': [tree_to_json(child) for child in comment_node.get_child_comments()]}
