@@ -77,8 +77,8 @@ def get_resource():
     return jsonify({'data': 'Hello, %s!' % g.user.get_user_name()})
 
 
-@app.route('/api/createDiscussion', methods=['GET'])
-@auth.login_required
+@app.route('/api/createDiscussion', methods=['POST'])
+# @auth.login_required
 def create_discussion():
     try:
         title = request.json.get('title')
@@ -91,18 +91,18 @@ def create_discussion():
         return
 
 
-@app.route('/api/addComment', methods=['GET'])
-@auth.login_required
+@app.route('/api/addComment', methods=['POST'])
+# @auth.login_required
 def add_comment():
     comment_dict = {}
     try:
-        comment_dict["author"] = request.args.get('author')
-        comment_dict["text"] = request.args.get('text')
-        comment_dict["parentId"] = request.args.get('parentId')
-        comment_dict["discussionId"] = request.args.get('discussionId')
-        comment_dict["extra_data"] = request.args.get('extra_data')
-        comment_dict["time_stamp"] = request.args.get('time_stamp')
-        comment_dict["depth"] = request.args.get('depth')
+        comment_dict["author"] = request.json.get('author')
+        comment_dict["text"] = request.json.get('text')
+        comment_dict["parentId"] = request.json.get('parentId')
+        comment_dict["discussionId"] = request.json.get('discussionId')
+        comment_dict["extra_data"] = request.json.get('extra_data')
+        comment_dict["time_stamp"] = request.json.get('time_stamp')
+        comment_dict["depth"] = request.json.get('depth')
         response = discussion_controller.add_comment(comment_dict)
     except IOError as e:
         app.logger.exception(e)
