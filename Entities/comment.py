@@ -131,6 +131,7 @@ class CommentNode(Comment):
 
     def to_client_dict(self):
         return {
+            "id": self._id,
             "author": self.author,
             "text": self.text,
             "parentId": self.parent_id,
