@@ -1,9 +1,7 @@
 from flask import Flask, abort, request, jsonify, g, url_for
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
-
 from Controllers import discussion_controller
-from Entities.comment import *
 from flask_httpauth import HTTPBasicAuth
 from Controllers.discussion_controller import DiscussionController
 from Controllers.user_controller import UserController
