@@ -1,6 +1,5 @@
 from Entities.comment import Comment
 from kamin_API import app
-from flask import json, jsonify
 import unittest
 
 
@@ -16,7 +15,7 @@ class MyTestCase(unittest.TestCase):
     def test_get_discussion(self):
         with app.app_context():
             response = app.test_client().post(
-                '/getDiscussion',
+                '/getDiscussion/1',
                 data=Comment("ron", "lalalalal", None, 0),
                 content_type='application/json',
             )
