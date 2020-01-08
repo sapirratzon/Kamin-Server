@@ -1,10 +1,13 @@
 from flask import Flask, abort, request, jsonify, json
 from flask_cors import CORS
+from flask_socketio import SocketIO, emit
+
 from Controllers import discussion_controller
 from Entities.comment import *
 
 app = Flask(__name__)
 CORS(app)
+socketio = SocketIO(app, cors_allowed_origins='*')
 
 
 @app.route('/getDiscussion/<int:discussion_id>', methods=['GET'])
@@ -43,5 +46,11 @@ def add_comment(comment: int):
     return comment_node.get_actions()
 
 
+@socketio.on('chat message')
+def chat_message(message):
+    print(message)
+    emit('chat message', {'data': message})
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    # app.debug = True
+    socketio.run(app)
