@@ -115,10 +115,9 @@ def add_comment():
     return jsonify(response), 201
 
 
-@app.route('/api/getDiscussion', methods=['GET'])
-def get_discussion():
+@app.route('/api/getDiscussion/<string:discussion_id>', methods=['GET'])
+def get_discussion(discussion_id):
     try:
-        discussion_id = request.args.get('discussion_id')
         discussion_tree = discussion_controller.get_discussion(discussion_id)
         discussion_json_dict = discussion_tree.to_json_dict()
         return jsonify({"discussion": discussion_json_dict['discussion'], "tree": discussion_json_dict['tree']})
