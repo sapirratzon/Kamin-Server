@@ -45,6 +45,10 @@ class DBManagement:
 
         return result.inserted_id.binary.hex()
 
+    def get_comment(self, comment_id):
+        comment = self.comment_col.find_one({"_id": ObjectId(comment_id)})
+        return comment
+
     def add_new_user(self, user):
         result = self.user_col.insert_one(user.to_dict())
         return result.inserted_id.binary.hex()

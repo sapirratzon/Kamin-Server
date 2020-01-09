@@ -29,7 +29,7 @@ class DiscussionController:
                                   discussion_id=comment_dict["discussionId"], extra_data=comment_dict["extra_data"],
                                   actions=comment_dict["actions"], labels=comment_dict["labels"],
                                   depth=comment_dict["depth"], time_stamp=comment_dict["time_stamp"],
-                                  child_comments=[])
+                                  child_comments=[], is_alerted=comment_dict["isAlerted"], alert=comment_dict["alert"])
             return comment
 
         child_list = []
@@ -41,14 +41,15 @@ class DiscussionController:
                               parent_id=comment_dict["parentId"], discussion_id=comment_dict["discussionId"],
                               extra_data=comment_dict["extra_data"], actions=comment_dict["actions"],
                               labels=comment_dict["labels"], depth=comment_dict["depth"],
-                              time_stamp=comment_dict["time_stamp"], child_comments=child_list)
+                              time_stamp=comment_dict["time_stamp"], child_comments=child_list,
+                              is_alerted=comment_dict["isAlerted"], alert=comment_dict["alert"])
         return comment
 
     def add_comment(self, comment_dict):
         comment = CommentNode(author=comment_dict["author"], text=comment_dict["text"],
                               parent_id=comment_dict["parentId"], discussion_id=comment_dict["discussionId"],
                               extra_data=comment_dict["extra_data"], time_stamp=comment_dict["time_stamp"],
-                              depth=comment_dict["depth"], child_comments=[], actions=[], labels=[])
+                              depth=comment_dict["depth"], child_comments=[], actions=[], labels=comment_dict["labels"])
         # Call KaminAI
         kamin_response = None
         # kamin_analyzed_data = AnalysisData(comment)
@@ -59,7 +60,3 @@ class DiscussionController:
                     "KaminAI result": kamin_response}
         return response
 
-    # To implement
-    def get_discussions_id(self):
-        discussions = self.db_management.get_discussions_id()
-        return discussions

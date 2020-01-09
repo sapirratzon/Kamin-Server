@@ -106,6 +106,8 @@ class CommentNode(Comment):
         super().__init__(*args, **kwargs)
         self._id = kwargs.get('id', "")
         self.child_comments = kwargs.get('child_comments', [])
+        self.is_alerted = kwargs.get('is_alerted', False)
+        self.alert = kwargs.get('alert', "")
 
     def add_child_comment(self, comment):
         self.child_comments.append(comment)
@@ -141,5 +143,7 @@ class CommentNode(Comment):
             "time_stamp": self.time_stamp,
             "labels": self.labels,
             "actions": self.actions,
-            "extra_data": self.extra_data
+            "extra_data": self.extra_data,
+            "isAlerted": self.is_alerted,
+            "alert": self.alert
         }
