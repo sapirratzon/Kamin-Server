@@ -1,3 +1,5 @@
+import json
+
 from flask import Flask, abort, request, jsonify, g, url_for
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
@@ -6,7 +8,6 @@ from flask_httpauth import HTTPBasicAuth
 from Controllers.discussion_controller import DiscussionController
 from Controllers.user_controller import UserController
 from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired)
-
 
 # initialization
 app = Flask(__name__)
@@ -50,10 +51,11 @@ def new_user():
     first_name = request.json.get('first_name')
     last_name = request.json.get('last_name')
     if username is None or password is None:
-        abort(400) # missing arguments
+        abort(400)  # missing arguments
     if user_controller.get_user(username=username) is not None:
-        abort(400) # existing user
-    user_id = user_controller.add_new_user(username=username, password=password, first_name=first_name, last_name=last_name)
+        abort(400)  # existing user
+    user_id = user_controller.add_new_user(username=username, password=password, first_name=first_name,
+                                           last_name=last_name)
     return jsonify({'user_id': user_id}), 201
 
 
@@ -63,7 +65,9 @@ def get_user():
     user = user_controller.get_user(username=username)
     if not user:
         abort(400)
-    return jsonify({'username': user.get_user_name(), 'password': user.get_password(), 'first_name': user.get_first_name(), 'last_name': user.get_last_name()}), 201
+    return jsonify(
+        {'username': user.get_user_name(), 'password': user.get_password(), 'first_name': user.get_first_name(),
+         'last_name': user.get_last_name()}), 201
 
 
 @app.route('/api/token')
@@ -99,23 +103,15 @@ def create_discussion():
 @socketio.on("add comment")
 def add_comment(request_comment):
     comment_dict = {}
+    json_string = request_comment
     try:
-        comment_dict["author"] = request_comment.json.get('author')
-        comment_dict["text"] = request_comment.json.get('text')
-        comment_dict["parentId"] = request_comment.json.get('parentId')
-        comment_dict["discussionId"] = request_comment.json.get('discussionId')
-        comment_dict["extra_data"] = request_comment.json.get('extra_data')
-        comment_dict["time_stamp"] = request_comment.json.get('time_stamp')
-        comment_dict["depth"] = request_comment.json.get('depth')
+        comment_dict = json.loads(json_string)
         response = discussion_controller.add_comment(comment_dict)
-        emit("add comment",response)
+        emit("add comment", response)
     except IOError as e:
         app.logger.exception(e)
         abort(400)
         return
-
-    return jsonify(response), 201
-
 
 @app.route('/api/getDiscussion/<string:discussion_id>', methods=['GET'])
 def get_discussion(discussion_id):
