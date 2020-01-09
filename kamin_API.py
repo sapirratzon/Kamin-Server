@@ -9,6 +9,7 @@ from Controllers.discussion_controller import DiscussionController
 from Controllers.user_controller import UserController
 from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired)
 
+
 # initialization
 app = Flask(__name__)
 CORS(app)
@@ -112,6 +113,9 @@ def add_comment(request_comment):
         app.logger.exception(e)
         abort(400)
         return
+
+    return jsonify(response), 201
+
 
 @app.route('/api/getDiscussion/<string:discussion_id>', methods=['GET'])
 def get_discussion(discussion_id):
