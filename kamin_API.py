@@ -114,8 +114,6 @@ def add_comment(request_comment):
         abort(400)
         return
 
-    return jsonify(response), 201
-
 
 @app.route('/api/getDiscussion/<string:discussion_id>', methods=['GET'])
 def get_discussion(discussion_id):
