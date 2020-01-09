@@ -107,7 +107,7 @@ def add_comment(request_comment):
     try:
         comment_dict = json.loads(json_string)
         response = discussion_controller.add_comment(comment_dict)
-        emit("add comment", response)
+        socketio.emit("add comment", response)
     except IOError as e:
         app.logger.exception(e)
         abort(400)
