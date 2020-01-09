@@ -104,6 +104,7 @@ class Comment:
 class CommentNode(Comment):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._id = kwargs.get('id', "")
         self.child_comments = kwargs.get('child_comments', [])
 
     def add_child_comment(self, comment):

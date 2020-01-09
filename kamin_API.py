@@ -132,6 +132,7 @@ def chat_message(message):
     print(message)
     emit('chat message', {'data': message})
 
+
 if __name__ == '__main__':
-    # app.debug = True
+    app.debug = True
     socketio.run(app)
