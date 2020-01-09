@@ -37,7 +37,7 @@ class DiscussionController:
             child_comment_dict = comments[comment_id]
             child_list.append(self.get_comment_recursive(child_comment_dict, comments))
 
-        comment = CommentNode(author=comment_dict["author"], text=comment_dict["text"],
+        comment = CommentNode(id=comment_dict["_id"].binary.hex(), author=comment_dict["author"], text=comment_dict["text"],
                               parent_id=comment_dict["parentId"], discussion_id=comment_dict["discussionId"],
                               extra_data=comment_dict["extra_data"], actions=comment_dict["actions"],
                               labels=comment_dict["labels"], depth=comment_dict["depth"],
