@@ -54,9 +54,10 @@ class DiscussionController:
         # kamin_analyzed_data = AnalysisData(comment)
         # comment.set_actions(kamin_analyzed_data.get_comment_actions())
         # comment.set_labels(kamin_analyzed_data.get_comment_labels())
-        comment_id = self.db_management.add_comment(comment)
-        response = {"comment_id": comment_id,
-                    "KaminAI result": kamin_response}
+        comment.set_id(self.db_management.add_comment(comment))
+        response = {"comment": comment.to_client_dict(),
+                    "KaminAIresult": kamin_response}
+
         return response
 
     # To implement

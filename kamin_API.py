@@ -94,19 +94,21 @@ def create_discussion():
         return
 
 
-@app.route('/api/addComment', methods=['POST'])
+# @app.route('/api/addComment', methods=['POST'])
 # @auth.login_required
-def add_comment():
+@socketio.on("add comment")
+def add_comment(request_comment):
     comment_dict = {}
     try:
-        comment_dict["author"] = request.json.get('author')
-        comment_dict["text"] = request.json.get('text')
-        comment_dict["parentId"] = request.json.get('parentId')
-        comment_dict["discussionId"] = request.json.get('discussionId')
-        comment_dict["extra_data"] = request.json.get('extra_data')
-        comment_dict["time_stamp"] = request.json.get('time_stamp')
-        comment_dict["depth"] = request.json.get('depth')
+        comment_dict["author"] = request_comment.json.get('author')
+        comment_dict["text"] = request_comment.json.get('text')
+        comment_dict["parentId"] = request_comment.json.get('parentId')
+        comment_dict["discussionId"] = request_comment.json.get('discussionId')
+        comment_dict["extra_data"] = request_comment.json.get('extra_data')
+        comment_dict["time_stamp"] = request_comment.json.get('time_stamp')
+        comment_dict["depth"] = request_comment.json.get('depth')
         response = discussion_controller.add_comment(comment_dict)
+        emit("add comment",response)
     except IOError as e:
         app.logger.exception(e)
         abort(400)
