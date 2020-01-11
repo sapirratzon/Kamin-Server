@@ -1,7 +1,7 @@
 from Entities.analysis_data import AnalysisData
 from Entities.comment import CommentNode
 
-from db_management.db_management import DBManagement
+from DBManagement.db_management import DBManagement
 from Entities.new_discussion import Discussion, DiscussionTree
 
 

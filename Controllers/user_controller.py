@@ -1,5 +1,5 @@
 
-from db_management.db_management import DBManagement
+from DBManagement.db_management import DBManagement
 from Entities.user import User
 
 

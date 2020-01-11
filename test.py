@@ -5,7 +5,7 @@ from datetime import datetime
 import TreeTools.TreeTools as tt
 
 
-def create_discussion_on_db(discussion_id=0, discussion_path='D:\\Kamin-Server\\resources\\discussions\\80919_labeled_trees.txt'):
+def create_discussion_on_db(discussion_id=0, discussion_path='D:\\Kamin-Server\\resources\\discussions\\80919_labeled_trees_with_alerts.txt'):
     trees = tt.load_list_of_trees(discussion_path)
     root_tree = trees[discussion_id]
     dc = DiscussionController()
