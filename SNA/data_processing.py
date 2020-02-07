@@ -5,7 +5,7 @@ import pandas as pd
 from Entities.comment import CommentNode
 
 
-def seperated_networks_to_csv(file_path, path_to_save, remove_deleted=True):
+def seperated_networks_to_csv(file_path, path_to_save, ignore_deleted=True):
     trees = tt.load_list_of_trees("80919_labeled_trees.txt")
     # tt.extract_networks_from_trees(trees, ['DA', 'QU', 'MN'], 'networks.csv' )
     first_tree = trees[0]
@@ -26,20 +26,20 @@ def seperated_networks_to_csv(file_path, path_to_save, remove_deleted=True):
         weighted_edge_list = tt.translate_matrix_to_edgelist(matrix['tree_map'], True)
         final_edge_list = []
         for edge in weighted_edge_list:
-            if '[deleted]' not in edge or not remove_deleted:
+            if '[deleted]' not in edge or not ignore_deleted:
                 final_edge_list.append(edge)
         df = pd.DataFrame(final_edge_list, columns=['Source', 'Target', 'Weight'])
         df.to_csv(path_to_save + "\\discussion_" + str(discussion_id) + "_weighted_edges.csv")
 
 
-def whole_network_to_csv(file_path, remove_deleted=True):
+def whole_network_to_csv(file_path, ignore_deleted=True):
     matrix_list = []
     trees = tt.load_list_of_trees("80919_labeled_trees.txt")
     for i in range(0, 46):
         tree = trees[i]
         matrix_list.append(tt.answers_matrix(tree)['tree_map'])
 
-    weighted_edge_list = tt.translate_matrix_list_to_weighted_edge_list(matrix_list, remove_deleted)
+    weighted_edge_list = tt.translate_matrix_list_to_weighted_edge_list(matrix_list, ignore_deleted)
     df = pd.DataFrame(weighted_edge_list, columns=['Source', 'Target', 'Weight'])
     df.to_csv("DataSet\\all_weighted_edges.csv")
 

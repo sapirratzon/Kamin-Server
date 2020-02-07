@@ -159,14 +159,14 @@ def translate_matrix_to_edgelist(matrix, weighted_output=False):
     return edgelist
 
 
-def translate_matrix_list_to_weighted_edge_list(matrix_list, remove_deleted=True):
+def translate_matrix_list_to_weighted_edge_list(matrix_list, ignore_deleted=True):
     """
     Receives a matrix and converts it to edge-list (list of 3-val tuples).
 
     Args:
         matrix_list: in form of dictionary - [{'user1' : [(user2, timestamp), ...],
                                          ...................................}, .....]
-        :param remove_deleted:
+        :param ignore_deleted:
 
 
         weighted_output: A boolean to indicate if expected weighted-graph output or multi-graph (with timestamp)
@@ -180,17 +180,17 @@ def translate_matrix_list_to_weighted_edge_list(matrix_list, remove_deleted=True
     weights = {}
     for matrix in matrix_list:
         for user1 in matrix:
-            if remove_deleted and user1 == '[deleted]':
+            if ignore_deleted and user1 == '[deleted]':
                 continue
             weights[user1] = defaultdict(int)
             for (user2, timestamp) in matrix[user1]:
-                if remove_deleted and user2 == '[deleted]':
+                if ignore_deleted and user2 == '[deleted]':
                     continue
                 weights[user1][user2] += 1
 
     for user1 in weights.keys():
         for (user2, weight) in weights[user1].items():
-            if remove_deleted and user2 == '[deleted]':
+            if ignore_deleted and user2 == '[deleted]':
                 continue
             edgelist.append((user1, user2, weight))
 
