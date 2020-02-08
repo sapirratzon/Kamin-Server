@@ -1,3 +1,5 @@
+import csv
+import json
 from datetime import datetime
 from TreeTools import TreeTools as tt
 import pandas as pd
@@ -44,8 +46,68 @@ def whole_network_to_csv(file_path, ignore_deleted=True):
     df.to_csv("DataSet\\all_weighted_edges.csv")
 
 
+"""
+source - author of reply
+target - target of reply
+weight - count of same reply 
+timestamp
+text - content 
+discussion idx = discussion idx in our title links file
+title - title of discussion
+ups
+downs
+"""
+
+
+def get_edges_csv(ignore_deleted=True):
+    trees = tt.load_list_of_trees("80919_labeled_trees.txt")
+    edges = {}
+    for i in range(0, len(trees)):
+        tree = trees[i]
+        travese_collect_edges_data(tree, edges, 'CMV-New-Discussion', i, tree['node']['extra_data']['title'],
+                                   tree['node']['extra_data']['url'], True)
+    gephi_edges = []
+    for key in edges:
+        edge = edges[key]
+        gephi_edge = [edge['source'], edge['target'], edge['weight'], edge['timestamp'], ""]
+        if len(edge['idxList']) > 1:
+            for i in range(0, len(edge['idxList'])):
+                gephi_edge[4] += str(edge["idxList"][i]) + ', '
+        else:
+            gephi_edge[4] = edge["idxList"][0]
+
+        gephi_edges.append(gephi_edge)
+    df = pd.DataFrame(gephi_edges,
+                      columns=['Source', 'Target', 'Weight', 'Timestamp', 'DiscussionIdx'])
+    df.to_csv("DataSet\\edges.csv")
+
+
+def travese_collect_edges_data(tree, edges, parent_author, idx, title, url, ignore_deleted):
+    node = tree['node']
+    author = node['author']
+    if not (ignore_deleted and ('[deleted]' in author or '[deleted]' in parent_author)):
+        key = author + ' -> ' + parent_author
+        if key not in edges:
+            edges[key] = {}
+            edges[key]["source"] = author
+            edges[key]["target"] = parent_author
+            edges[key]['weight'] = 0
+            edges[key]["timestamp"] = node['timestamp']
+            edges[key]["idxList"] = []
+            edges[key]['contentList'] = []
+        edge = edges[key]
+        edge['weight'] += 1
+        if node['timestamp'] < edge['timestamp']:
+            edge['timestamp'] = node['timestamp']
+        if idx not in edge['idxList']:
+            edge['idxList'].append(idx)
+        edge['contentList'].append(str(node))
+    for child in tree['children']:
+        travese_collect_edges_data(child, edges, author, idx, title, url, ignore_deleted)
+
+
 # Id - name, Label - name, DiscussionsIds, DiscussionsURL
-def get_nodes_csv():
+def get_nodes_csv(ignore_deleted=True):
     trees = tt.load_list_of_trees("80919_labeled_trees.txt")
     nodes = {}
     for i in range(0, len(trees)):
@@ -63,7 +125,6 @@ def get_nodes_csv():
             nodes_gephi[author][2] += str(node[2][i]) + ', '
             nodes_gephi[author][3] += node[3][i] + ', '
             nodes_gephi[author][4] += node[4][i] + ', '
-
     df = pd.DataFrame(nodes_gephi.values(), columns=['Id', 'Label', 'DiscussionsIdx', 'DiscussionsTitles', 'Urls'])
     df.to_csv("DataSet\\all_nodes_data.csv")
     nodes_discussions_df = pd.DataFrame(nodes_disucssions_format,
@@ -72,30 +133,19 @@ def get_nodes_csv():
     return nodes
 
 
-def travese_collect_nodes_data(tree, nodes, i, title, url):
+def travese_collect_nodes_data(tree, nodes, idx, title, url):
     node = tree['node']
     author = node['author']
     if not author in nodes:
         nodes[author] = (author, author, [], [], [])
-        # nodes[author] = (author, author, str(i), title, url)
-    if i not in nodes[author][2]:
-        nodes[author][2].append(i)
+    if idx not in nodes[author][2]:
+        nodes[author][2].append(idx)
     if title not in nodes[author][3]:
         nodes[author][3].append(title)
     if url not in nodes[author][4]:
         nodes[author][4].append(url)
-    # else:
-    #     if str(i) not in nodes[author][2]:
-    #         nodes[author][2] += ', ' + i
-    #     if title not in nodes[author][3]:
-    #         nodes[author][3] += ', ' + title
-    #     if url not in nodes[author][4]:
-    #         nodes[author][4] += ', ' + url
-    # node[node['author']][3] += ',' + node['extra_data']['title']
-    # node[node['author']][3] += ',' + node['extra_data']['url']
-
     for child in tree['children']:
-        travese_collect_nodes_data(child, nodes, i, title, url)
+        travese_collect_nodes_data(child, nodes, idx, title, url)
 
 
 def print_title_link():
@@ -128,5 +178,5 @@ root_comment = CommentNode(author=first_tree['node']['author'], text=first_tree[
 # trees = tt.load_list_of_trees("80919_labeled_trees.txt")
 
 # print_title_link()
-whole_network_to_csv('', True)
+get_edges_csv()
 # get_nodes_csv()
