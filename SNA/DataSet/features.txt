@@ -6,5 +6,5 @@
 
 
 
-['text', 'id', 'author', 'extra_data', 'timestamp', 'file:line', 'subreddit', 'from_kind', 'from', 'title',
-'num_comments', 'subreddit_id', 'downs', 'saved', 'from_id', 'permalink', 'name', 'url', 'ups']
+'text', 'id', 'author', 'extra_data', 'timestamp', 'file:line', 'subreddit', 'from_kind', 'from', 'title'
+extra data: 'num_comments', 'subreddit_id', 'downs', 'saved', 'from_id', 'permalink', 'name', 'url', 'ups'

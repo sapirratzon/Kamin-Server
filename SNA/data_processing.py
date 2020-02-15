@@ -94,14 +94,12 @@ def travese_collect_edges_data(tree, edges, parent_author, idx, title, url, igno
             edges[key]['weight'] = 0
             edges[key]["timestamp"] = node['timestamp']
             edges[key]["idxList"] = []
-            edges[key]['contentList'] = []
         edge = edges[key]
         edge['weight'] += 1
         if node['timestamp'] < edge['timestamp']:
             edge['timestamp'] = node['timestamp']
         if idx not in edge['idxList']:
             edge['idxList'].append(idx)
-        edge['contentList'].append(str(node))
     for child in tree['children']:
         travese_collect_edges_data(child, edges, author, idx, title, url, ignore_deleted)
 
@@ -178,5 +176,9 @@ root_comment = CommentNode(author=first_tree['node']['author'], text=first_tree[
 # trees = tt.load_list_of_trees("80919_labeled_trees.txt")
 
 # print_title_link()
-get_edges_csv()
+# get_edges_csv()
 # get_nodes_csv()
+
+trees = tt.load_list_of_trees("80919_labeled_trees.txt")
+tree = trees[0]
+print(tree['node'])
