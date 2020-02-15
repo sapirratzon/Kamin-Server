@@ -57,8 +57,8 @@ def get_nodes_csv(ignore_deleted=True):
     nodes = {}
     for i in range(0, len(trees)):
         tree = trees[i]
-        travese_collect_nodes_data(tree, nodes, i, tree['node']['extra_data']['title'],
-                                   tree['node']['extra_data']['url'])
+        traverse_collect_nodes_data(tree, nodes, i, tree['node']['extra_data']['title'],
+                                    tree['node']['extra_data']['url'])
     nodes_disucssions_format = []
     nodes_gephi = {}
     for author in nodes:
@@ -78,7 +78,7 @@ def get_nodes_csv(ignore_deleted=True):
     return nodes
 
 
-def travese_collect_nodes_data(tree, nodes, idx, title, url):
+def traverse_collect_nodes_data(tree, nodes, idx, title, url):
     node = tree['node']
     author = node['author']
     if not author in nodes:
@@ -90,7 +90,7 @@ def travese_collect_nodes_data(tree, nodes, idx, title, url):
     if url not in nodes[author][4]:
         nodes[author][4].append(url)
     for child in tree['children']:
-        travese_collect_nodes_data(child, nodes, idx, title, url)
+        traverse_collect_nodes_data(child, nodes, idx, title, url)
 
 
 def print_title_link():
