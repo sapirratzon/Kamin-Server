@@ -72,7 +72,8 @@ class DiscussionController:
         comment = CommentNode(author=comment_dict["author"], text=comment_dict["text"],
                               parent_id=comment_dict["parentId"], discussion_id=comment_dict["discussionId"],
                               extra_data=comment_dict["extra_data"], time_stamp=comment_dict["time_stamp"],
-                              depth=comment_dict["depth"], child_comments=[], actions=[], labels=comment_dict["labels"])
+                              depth=comment_dict["depth"], child_comments=[], actions=[])
+        # , labels=comment_dict["labels"])
         # Call KaminAI
         kamin_response = None
         # kamin_analyzed_data = AnalysisData(comment)
