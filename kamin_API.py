@@ -71,7 +71,7 @@ def get_user():
          'last_name': user.get_last_name()}), 201
 
 
-@app.route('/api/token')
+@app.route('/api/login')
 @auth.login_required
 def get_auth_token():
     token = g.user.generate_auth_token(app.config['SECRET_KEY'], 600)
