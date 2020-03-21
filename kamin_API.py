@@ -91,8 +91,12 @@ def create_discussion():
     try:
         title = request.json.get('title')
         categories = request.json.get('categories')
+        comment = request.json.get('comment')
         discussion_id = discussion_controller.create_discussion(title, categories)
-        return jsonify({'discussion': discussion_id}), 201
+        comment_dict = json.loads(comment)
+        comment_id = discussion_controller.add_comment(comment_dict)
+        return jsonify({'discussionId': discussion_id,
+                        'commentId': comment_id}), 201
     except IOError as e:
         app.logger.exception(e)
         abort(400)
