@@ -9,10 +9,16 @@ class DiscussionController:
 
     db_management = DBManagement()
 
-    def create_discussion(self, title, categories, root_comment_id=None):
-        disc = Discussion(title=title, categories=categories, root_comment_id=root_comment_id)
+    def create_discussion(self, title, categories, root_comment_dict):
+        disc = Discussion(title=title, categories=categories, root_comment_id=None)
         disc_id = self.db_management.create_discussion(disc)
-        return disc_id
+        root_comment_dict["discussionId"] = disc_id
+        root_comment_dict["parentId"] = None
+        root_comment = self.add_comment(root_comment_dict)["comment"]
+        discussion_tree = DiscussionTree(title=title, categories=categories, root_comment_id=root_comment.get_id(), root_comment=root_comment)
+        discussion_tree.set_id(disc_id)
+
+        return discussion_tree
 
     def get_discussion(self, discussion_id):
         discussion, comments = self.db_management.get_discussion(discussion_id)
@@ -80,7 +86,7 @@ class DiscussionController:
         # comment.set_actions(kamin_analyzed_data.get_comment_actions())
         # comment.set_labels(kamin_analyzed_data.get_comment_labels())
         comment.set_id(self.db_management.add_comment(comment))
-        response = {"comment": comment.to_client_dict(),
+        response = {"comment": comment,
                     "KaminAIresult": kamin_response}
 
         return response
