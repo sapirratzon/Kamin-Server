@@ -55,6 +55,16 @@ class DiscussionTree(Discussion):
         discussion_json_tree = tree_to_json(self.root_comment)
         return {'discussion': discussion, 'tree': discussion_json_tree}
 
+    def add_comment(self, comment):
+        self.add_comment_recursive(self.root_comment, comment)
+
+    def add_comment_recursive(self, current_node, comment):
+        if current_node.get_id() == comment.parent_id:
+            current_node.add_child_comment(comment)
+            return
+
+        [self.add_comment_recursive(child, comment) for child in current_node.get_child_comments()]
+
 
 def tree_to_json(comment_node):
     return {'node': comment_node.to_client_dict(),
