@@ -7,6 +7,8 @@ from flask_httpauth import HTTPBasicAuth
 from Controllers.discussion_controller import DiscussionController
 from Controllers.user_controller import UserController
 from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired)
+from Entities.user import Permission
+
 
 
 # initialization
@@ -47,28 +49,55 @@ def verify_password(username_or_token, password):
 
 @app.route('/api/newUser', methods=['POST'])
 def new_user():
-    username = request.json.get('username')
-    password = request.json.get('password')
-    first_name = request.json.get('first_name')
-    last_name = request.json.get('last_name')
-    if username is None or password is None:
-        abort(400)  # missing arguments
-    if user_controller.get_user(username=username) is not None:
-        abort(400)  # existing user
-    user_id = user_controller.add_new_user(username=username, password=password, first_name=first_name,
-                                           last_name=last_name)
-    return jsonify({'user_id': user_id}), 201
+    try:
+        username = request.json.get('username')
+        password = request.json.get('password')
+        first_name = request.json.get('first_name')
+        last_name = request.json.get('last_name')
+        if username is None or password is None:
+            raise Exception("username or password is Missing, can't create new user!")
+        if user_controller.get_user(username=username) is not None:
+            raise Exception("username is already exist, can't create new user!")
+        user_id = user_controller.add_new_user(username=username, password=password, first_name=first_name,
+                                               last_name=last_name)
+        return jsonify({'user_id': user_id}), 200
+    except Exception as e:
+        app.logger.exception(e)
+        abort(500, e)
 
 
 @app.route('/api/getUser', methods=['GET'])
 def get_user():
-    username = request.args.get('username')
-    user = user_controller.get_user(username=username)
-    if not user:
-        abort(400)
-    return jsonify(
-        {'username': user.get_user_name(), 'password': user.get_password(), 'first_name': user.get_first_name(),
-         'last_name': user.get_last_name()}), 201
+    try:
+        username = request.args.get('username')
+        user = user_controller.get_user(username=username)
+        if not user:
+            raise Exception("username is not exist!")
+        return jsonify(
+            {'username': user.get_user_name(), 'password': user.get_password(), 'first_name': user.get_first_name(),
+             'last_name': user.get_last_name(), 'permission': user.get_permission()}), 200
+    except Exception as e:
+        app.logger.exception(e)
+        abort(500, e)
+
+
+@app.route('/api/changeUserPermission', methods=['GET'])
+@auth.login_required
+def change_user_permission():
+    try:
+        user = g.user
+        if user.get_permission() is not Permission.ROOT.value:
+            raise Exception("Only ROOT user permitted to change permissions!")
+        permission = request.args.get('permission')
+        username = request.args.get('username')
+        user = user_controller.get_user(username=username)
+        if not user:
+            raise Exception("username is not exist!")
+        result = user_controller.change_user_permission(user, permission)
+        return jsonify(result), 200
+    except Exception as e:
+        app.logger.exception(e)
+        abort(500, e)
 
 
 @app.route('/api/login')
@@ -102,39 +131,38 @@ def get_discussion():
         return
 
 
+
+
 ### updated
-@socket_io.on('createDiscussion')
-# @app.route('/api/createDiscussion', methods=['POST'])
-# @auth.login_required
-def create_discussion(data):
+# @socket_io.on('createDiscussion')
+@app.route('/api/createDiscussion', methods=['POST'])
+@auth.login_required
+def create_discussion():
     try:
-        request = json.loads(data)
-        title = request['title']
-        categories = request['categories']
-        root_comment = json.loads(request['root_comment_dict'])
+        user = g.user
+        if user.get_permission() is not Permission.MODERATOR.value:
+            raise Exception("User not permitted to create discussion!")
+        title = request.json["title"]
+        if title is None:
+            raise Exception("Title is missing, can't create discussion!")
+        categories = request.json["categories"]
+        root_comment = request.json["root_comment_dict"]
+        if root_comment is None or len(root_comment) is 0:
+            raise Exception("Message is missing, can't create discussion!")
         discussion_tree = discussion_controller.create_discussion(title, categories, root_comment)
         room = discussion_tree.get_id()
         ROOMS[room] = discussion_tree
-        join_room(room)
-        socket_io.emit('createDiscussion', {'room': room, 'root_id': discussion_tree.get_root_comment_id()})
-        # return jsonify({'discussion_id': discussion_tree.get_id(), "root_comment_id": discussion_tree.get_root_comment_id()}), 201
-    except IOError as e:
+        # join_room(room)
+        # socket_io.emit('createDiscussion', {'room': room, 'root_id': discussion_tree.get_root_comment_id()})
+        return jsonify({'discussion_id': discussion_tree.get_id(), "root_comment_id": discussion_tree.get_root_comment_id()}), 201
+    except Exception as e:
         app.logger.exception(e)
-        abort(400)
+        abort(500, e)
         return
 
 
-@socket_io.on('join')
-def on_join(data):
- #   request = json.loads(data)
-    username = data['username']
-    room = data['room']
-    if room in ROOMS:
-        # write to log that username join to room
-        join_room(room)
-        socket_io.send(ROOMS[room].to_json_dict()['tree'], room=room)
-    else:
-        socket_io.send('error', {'error': 'Unable to join room. Room does not exist.'})
+
+
 
 
 # @app.route('/api/addComment', methods=['POST'])
@@ -153,27 +181,11 @@ def add_comment(request_comment):
         return
 
 
-# @socket_io.on("add comment")
-# def add_comment(request_comment):
-#     json_string = request_comment
-#     try:
-#         data = json.loads(json_string)
-#         room = data['room']
-#         comment_dict = data['comment']
-#         response = discussion_controller.add_comment(comment_dict)
-#         ROOMS[room].add_comment(response["comment"])
-#         response["comment"] = response["comment"].to_client_dict()
-#         send(response, room=room)
-#     except IOError as e:
-#         app.logger.exception(e)
-#         abort(400)
-#         return
-
-
 @socket_io.on('chat message')
 def chat_message(message):
     print(message)
     emit('chat message', {'data': message})
+
 
 
 if __name__ == '__main__':

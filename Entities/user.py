@@ -1,14 +1,26 @@
 from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer)
 from passlib.apps import custom_app_context as pwd_context
+from enum import Enum
+
+
+class Permission(Enum):
+    USER = 1
+    MODERATOR = 2
+    ROOT = 3
 
 
 class User:
 
     def __init__(self, *args, **kwargs):
+        self._id = kwargs.get('user_id', "")
         self.user_name = kwargs.get('user_name', "")
         self.password_hash = kwargs.get('password', "")
         self.first_name = kwargs.get('first_name', "")
         self.last_name = kwargs.get('last_name', "")
+        self.permission = kwargs.get('permission', Permission.USER.value)
+
+    def get_user_id(self):
+        return self._id
 
     def get_user_name(self):
         return self.user_name
@@ -31,6 +43,12 @@ class User:
     def set_last_name(self, last_name):
         self.last_name = last_name
 
+    def get_permission(self):
+        return self.permission
+
+    def set_permission(self, permission):
+        self.permission = permission
+
     def hash_password(self, password):
         self.password_hash = pwd_context.encrypt(password)
 
@@ -46,5 +64,6 @@ class User:
             "user_name": self.user_name,
             "password_hash": self.password_hash,
             "first_name": self.first_name,
-            "last_name": self.last_name
+            "last_name": self.last_name,
+            "permission": self.permission
         }

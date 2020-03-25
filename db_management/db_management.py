@@ -54,5 +54,11 @@ class DBManagement:
         return result.inserted_id.binary.hex()
 
     def get_user(self, username):
-        user = self.user_col.find_one({'user_name': username})
+        user = self.user_col.find_one({"user_name": username})
         return user
+
+    def change_user_permission(self, user, permission):
+        result = self.user_col.update_one({"_id": ObjectId(user.get_user_id())}, {"$set": {"permission": permission}})
+        return result.acknowledged
+
+
