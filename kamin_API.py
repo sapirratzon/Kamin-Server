@@ -162,7 +162,45 @@ def create_discussion():
 
 
 
+# @socket_io.on('createDiscussion')
+# # @app.route('/api/createDiscussion', methods=['POST'])
+# # @auth.login_required
+# def create_discussion(data):
+#     try:
+#         request = json.loads(data)
+#         title = request['title']
+#         if title is None:
+#             raise Exception("Title is missing, can't create discussion!")
+#         categories = request['categories']
+#         root_comment = json.loads(request['root_comment_dict'])
+#         if root_comment is None:
+#             raise Exception("Message is missing, can't create discussion!")
+#         discussion_tree = discussion_controller.create_discussion(title, categories, root_comment)
+#         room = discussion_tree.get_id()
+#         ROOMS[room] = discussion_tree
+#         join_room(room)
+#         socket_io.emit('createDiscussion', {'room': room, 'root_id': discussion_tree.get_root_comment_id()})
+#         # return jsonify({'discussion_id': discussion_tree.get_id(), "root_comment_id": discussion_tree.get_root_comment_id()}), 201
+#     except Exception as e:
+#     app.logger.exception(e)
+#     abort(500, e)
+#     return
 
+
+
+@socket_io.on('join')
+def on_join(data):
+    request = json.loads(data)
+    token = request['token']
+    room = data['discussion_id']
+    user = verify_auth_token(token)
+    username = user.get_user_name()
+    if room in ROOMS:
+        # write to log that username join to room
+        join_room(room)
+        socket_io.send(ROOMS[room].to_json_dict()['tree'], room=room)
+    else:
+        socket_io.send('error', {'error': 'Unable to join room. Room does not exist.'})
 
 
 # @app.route('/api/addComment', methods=['POST'])
@@ -180,6 +218,27 @@ def add_comment(request_comment):
         abort(400)
         return
 
+# @socket_io.on("add comment")
+# def add_comment(request_comment):
+#     json_string = request_comment
+#     try:
+#         data = json.loads(json_string)
+#         room = data['room']
+#         comment_dict = data['comment']
+#         response = discussion_controller.add_comment(comment_dict)
+#         ROOMS[room].add_comment(response["comment"])
+#         response["comment"] = response["comment"].to_client_dict()
+#         send(response, room=room)
+#     except IOError as e:
+#         app.logger.exception(e)
+#         abort(400)
+#         return
+
+
+
+
+
+
 
 @socket_io.on('chat message')
 def chat_message(message):
@@ -187,6 +246,14 @@ def chat_message(message):
     emit('chat message', {'data': message})
 
 
+@socket_io.on('connect')
+def client_connect():
+    print("client connected")
+
+
+@socket_io.on('disconnect')
+def client_disconnect():
+    print("client disconnected")
 
 if __name__ == '__main__':
     #app.debug = True
