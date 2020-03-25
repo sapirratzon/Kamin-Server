@@ -6,13 +6,14 @@ from Entities.new_discussion import Discussion, DiscussionTree
 
 
 class DiscussionController:
-
     db_management = DBManagement()
 
-    def create_discussion(self, title, categories, root_comment_id=None):
+    def create_discussion(self, title, categories, comment_dict, root_comment_id=None, ):
         disc = Discussion(title=title, categories=categories, root_comment_id=root_comment_id)
         disc_id = self.db_management.create_discussion(disc)
-        return disc_id
+        comment_dict['discussionId'] = disc_id
+        comment_id = self.add_comment(comment_dict)
+        return {"discussionId":disc_id, "commentId": comment_id}
 
     def get_discussion(self, discussion_id):
         discussion, comments = self.db_management.get_discussion(discussion_id)
@@ -38,7 +39,8 @@ class DiscussionController:
                 child_comment_dict = comments[comment_id]
                 child_list.append(self.get_comment_recursive(child_comment_dict, comments))
 
-            comment = CommentNode(id=comment_dict["_id"].binary.hex(), author=comment_dict["author"], text=comment_dict["text"],
+            comment = CommentNode(id=comment_dict["_id"].binary.hex(), author=comment_dict["author"],
+                                  text=comment_dict["text"],
                                   parent_id=comment_dict["parentId"], discussion_id=comment_dict["discussionId"],
                                   extra_data=comment_dict["extra_data"], actions=comment_dict["actions"],
                                   labels=comment_dict["labels"], depth=comment_dict["depth"],
@@ -84,4 +86,3 @@ class DiscussionController:
                     "KaminAIresult": kamin_response}
 
         return response
-

@@ -9,7 +9,6 @@ from Controllers.discussion_controller import DiscussionController
 from Controllers.user_controller import UserController
 from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired)
 
-
 # initialization
 app = Flask(__name__)
 CORS(app)
@@ -92,11 +91,12 @@ def create_discussion():
         title = request.json.get('title')
         categories = request.json.get('categories')
         comment = request.json.get('comment')
-        discussion_id = discussion_controller.create_discussion(title, categories)
+        if comment == None:
+            abort(400)
         comment_dict = json.loads(comment)
-        comment_id = discussion_controller.add_comment(comment_dict)
-        return jsonify({'discussionId': discussion_id,
-                        'commentId': comment_id}), 201
+        ids_dict = discussion_controller.create_discussion(title, categories, comment_dict)
+
+        return jsonify(ids_dict), 201
     except IOError as e:
         app.logger.exception(e)
         abort(400)
@@ -138,5 +138,5 @@ def chat_message(message):
 
 
 if __name__ == '__main__':
-    app.debug = True
+    app.debug = False
     socketio.run(app)
