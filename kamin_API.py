@@ -9,14 +9,13 @@ from Controllers.user_controller import UserController
 from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired)
 from Entities.user import Permission
 
-
-
 # initialization
 app = Flask(__name__)
 CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
 socket_io = SocketIO(app, cors_allowed_origins='*')
 app.config['SECRET_KEY'] = 'the quick brown fox jumps over the lazy dog'
-ROOMS = {} # dict to track active rooms
+ROOMS = {}  # dict to track active rooms
 
 # extensions
 auth = HTTPBasicAuth()
@@ -131,22 +130,20 @@ def get_discussion():
         return
 
 
-
-
 ### updated
 # @socket_io.on('createDiscussion')
 @app.route('/api/createDiscussion', methods=['POST'])
-@auth.login_required
+# @auth.login_required
 def create_discussion():
     try:
-        user = g.user
-        if user.get_permission() is not Permission.MODERATOR.value:
-            raise Exception("User not permitted to create discussion!")
+        # user = g.user
+        # if user.get_permission() is not Permission.MODERATOR.value:
+        #     raise Exception("User not permitted to create discussion!")
         title = request.json["title"]
         if title is None:
             raise Exception("Title is missing, can't create discussion!")
         categories = request.json["categories"]
-        root_comment = request.json["root_comment_dict"]
+        root_comment = json.loads(request.json["root_comment_dict"])
         if root_comment is None or len(root_comment) is 0:
             raise Exception("Message is missing, can't create discussion!")
         discussion_tree = discussion_controller.create_discussion(title, categories, root_comment)
@@ -154,12 +151,12 @@ def create_discussion():
         ROOMS[room] = discussion_tree
         # join_room(room)
         # socket_io.emit('createDiscussion', {'room': room, 'root_id': discussion_tree.get_root_comment_id()})
-        return jsonify({'discussion_id': discussion_tree.get_id(), "root_comment_id": discussion_tree.get_root_comment_id()}), 201
+        return jsonify(
+            {'discussion_id': discussion_tree.get_id(), "root_comment_id": discussion_tree.get_root_comment_id()}), 201
     except Exception as e:
         app.logger.exception(e)
         abort(500, e)
         return
-
 
 
 # @socket_io.on('createDiscussion')
@@ -187,57 +184,57 @@ def create_discussion():
 #     return
 
 
+def create_room(room):
+    ROOMS[room] = discussion_controller.get_discussion(room)
+
 
 @socket_io.on('join')
 def on_join(data):
-    request = json.loads(data)
-    token = request['token']
+    # data = json.loads(request)
+    token = data['token']
     room = data['discussion_id']
     user = verify_auth_token(token)
-    username = user.get_user_name()
+    # username = user.get_user_name()
+    create_room(room)
     if room in ROOMS:
         # write to log that username join to room
         join_room(room)
-        socket_io.send(ROOMS[room].to_json_dict()['tree'], room=room)
+        discussion = ROOMS[room].to_json_dict()['tree']
+        socket_io.emit("join_room", data=discussion, room=room)
     else:
         socket_io.send('error', {'error': 'Unable to join room. Room does not exist.'})
 
 
 # @app.route('/api/addComment', methods=['POST'])
 # @auth.login_required
-@socket_io.on("add comment")
-def add_comment(request_comment):
-    comment_dict = {}
-    json_string = request_comment
-    try:
-        comment_dict = json.loads(json_string)
-        response = discussion_controller.add_comment(comment_dict)
-        socket_io.send("add comment", response) # change to send
-    except IOError as e:
-        app.logger.exception(e)
-        abort(400)
-        return
-
 # @socket_io.on("add comment")
 # def add_comment(request_comment):
+#     comment_dict = {}
 #     json_string = request_comment
 #     try:
-#         data = json.loads(json_string)
-#         room = data['room']
-#         comment_dict = data['comment']
+#         comment_dict = json.loads(json_string)
 #         response = discussion_controller.add_comment(comment_dict)
-#         ROOMS[room].add_comment(response["comment"])
-#         response["comment"] = response["comment"].to_client_dict()
-#         send(response, room=room)
+#         socket_io.send("add comment", response) # change to send
 #     except IOError as e:
 #         app.logger.exception(e)
 #         abort(400)
 #         return
 
-
-
-
-
+@socket_io.on("add comment")
+def add_comment(request_comment):
+    json_string = request_comment
+    try:
+        data = json.loads(json_string)
+        room = data['room']
+        comment_dict = data['comment']
+        response = discussion_controller.add_comment(comment_dict)
+        ROOMS[room].add_comment(response["comment"])
+        response["comment"] = response["comment"].to_client_dict()
+        socket_io.send(response, room=room)
+    except IOError as e:
+        app.logger.exception(e)
+        abort(400)
+        return
 
 
 @socket_io.on('chat message')
@@ -255,7 +252,8 @@ def client_connect():
 def client_disconnect():
     print("client disconnected")
 
+
 if __name__ == '__main__':
-    #app.debug = True
+    # app.debug = True
     socket_io.run(app, debug=False)
     print("bla")
