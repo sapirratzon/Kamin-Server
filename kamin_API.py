@@ -104,7 +104,9 @@ def change_user_permission():
 @auth.login_required
 def get_auth_token():
     token = g.user.generate_auth_token(app.config['SECRET_KEY'], 600)
-    return jsonify({'token': token.decode('ascii'), 'duration': 600})
+    user = g.user
+    permission = user.get_permission()
+    return jsonify({'token': token.decode('ascii'), 'permission': permission, 'duration': 600})
 
 
 @app.route('/api/resource')
@@ -162,6 +164,19 @@ def create_discussion():
 
 
 
+@socket_io.on('join')
+def on_join(data):
+    request = json.loads(data)
+    token = request['token']
+    room = data['discussion_id']
+    user = verify_auth_token(token)
+    username = user.get_user_name()
+    if room in ROOMS:
+        # write to log that username join to room
+        join_room(room)
+        socket_io.send(ROOMS[room].to_json_dict()['tree'], room=room)
+    else:
+        socket_io.send('error', {'error': 'Unable to join room. Room does not exist.'})
 
 
 # @app.route('/api/addComment', methods=['POST'])
@@ -186,6 +201,14 @@ def chat_message(message):
     emit('chat message', {'data': message})
 
 
+@socket_io.on('connect')
+def client_connect():
+    print("client connected")
+
+
+@socket_io.on('disconnect')
+def client_disconnect():
+    print("client disconnected")
 
 if __name__ == '__main__':
     #app.debug = True
