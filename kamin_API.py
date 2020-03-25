@@ -116,10 +116,9 @@ def get_resource():
 
 ### updated
 # @socket_io.on('loadDiscussion')
-@app.route('/api/getDiscussion', methods=['GET'])
-def get_discussion():
+@app.route('/api/getDiscussion/<string:discussion_id>', methods=['GET'])
+def get_discussion(discussion_id):
     try:
-        discussion_id = request.args.get('discussion_id')
         discussion_tree = discussion_controller.get_discussion(discussion_id)
         #     room = discussion_tree.get_id()
         #     ROOMS[room] = discussion_tree
