@@ -137,17 +137,17 @@ def get_discussion(discussion_id):
 ### updated
 # @socket_io.on('createDiscussion')
 @app.route('/api/createDiscussion', methods=['POST'])
-@auth.login_required
+# @auth.login_required
 def create_discussion():
     try:
-        user = g.user
-        if user.get_permission() is not Permission.MODERATOR.value:
-            raise Exception("User not permitted to create discussion!")
+        # user = g.user
+        # if user.get_permission() is not Permission.MODERATOR.value:
+        #     raise Exception("User not permitted to create discussion!")
         title = request.json["title"]
         if title is None:
             raise Exception("Title is missing, can't create discussion!")
         categories = request.json["categories"]
-        root_comment = request.json["root_comment_dict"]
+        root_comment = json.loads(request.json["root_comment_dict"])
         if root_comment is None or len(root_comment) is 0:
             raise Exception("Message is missing, can't create discussion!")
         discussion_tree = discussion_controller.create_discussion(title, categories, root_comment)
