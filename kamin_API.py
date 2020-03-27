@@ -225,6 +225,10 @@ def on_join(data):
 def add_comment(request_comment):
     json_string = request_comment
     try:
+        # TODO: isn't room should be a discussion object? or just room id?
+        # data = json.loads(json_string)
+        # room = data['room']
+        # comment_dict = data['comment']
         comment_dict = json.loads(json_string)
         room = comment_dict['discussionId']
         response = discussion_controller.add_comment(comment_dict)
