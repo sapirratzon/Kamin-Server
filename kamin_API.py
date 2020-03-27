@@ -199,8 +199,9 @@ def on_join(data):
     if room in ROOMS:
         # write to log that username join to room
         join_room(room)
-        discussion = ROOMS[room].to_json_dict()['tree']
-        socket_io.emit("join_room", data=discussion, room=room)
+        discussion_json_dict = ROOMS[room].to_json_dict()
+        # data = jsonify({"discussion": discussion_json_dict['discussion'], "tree": discussion_json_dict['tree']})
+        socket_io.emit("join_room",data=discussion_json_dict, room=room)
     else:
         socket_io.send('error', {'error': 'Unable to join room. Room does not exist.'})
 
@@ -224,9 +225,8 @@ def on_join(data):
 def add_comment(request_comment):
     json_string = request_comment
     try:
-        data = json.loads(json_string)
-        room = data['room']
-        comment_dict = data['comment']
+        comment_dict = json.loads(json_string)
+        room = comment_dict['discussionId']
         response = discussion_controller.add_comment(comment_dict)
         ROOMS[room].add_comment(response["comment"])
         response["comment"] = response["comment"].to_client_dict()
