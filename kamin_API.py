@@ -119,6 +119,7 @@ def get_resource():
 ### updated
 # @socket_io.on('loadDiscussion')
 @app.route('/api/getDiscussion/<string:discussion_id>', methods=['GET'])
+@auth.login_required
 def get_discussion(discussion_id):
     try:
         discussion_tree = discussion_controller.get_discussion(discussion_id)
@@ -132,10 +133,6 @@ def get_discussion(discussion_id):
         return
 
 
-
-
-### updated
-# @socket_io.on('createDiscussion')
 @app.route('/api/createDiscussion', methods=['POST'])
 # @auth.login_required
 def create_discussion():
