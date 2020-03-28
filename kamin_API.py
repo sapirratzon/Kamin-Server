@@ -193,29 +193,27 @@ def on_join(data):
     # data = json.loads(request)
     token = data['token']
     room = data['discussion_id']
-    # user = verify_auth_token(token)
+    user = verify_auth_token(token)
+    # TODO: for production only
     # username = user.get_user_name()
     if room not in ROOMS:
         create_room(room)
     # write to log that username join to room
     join_room(room)
     discussion_json_dict = ROOMS[room].to_json_dict()
-    # data = jsonify({"discussion": discussion_json_dict['discussion'], "tree": discussion_json_dict['tree']})
     socket_io.emit("join room", data=discussion_json_dict, room=request.sid)
-    # socket_io.emit("user_joined", data=username + "joined to discussion", room=room)
+    # socket_io.emit("user joined", data=username + " joined the discussion", room=room)
 
 @socket_io.on("add comment")
 def add_comment(request_comment):
     json_string = request_comment
     # TODO: isn't room should be a discussion object? or just room id?
-    # data = json.loads(json_string)
-    # room = data['room']
-    # comment_dict = data['comment']
     comment_dict = json.loads(json_string)
     room = comment_dict['discussionId']
     response = discussion_controller.add_comment(comment_dict)
     ROOMS[room].add_comment(response["comment"])
     response["comment"] = response["comment"].to_client_dict()
+    print(request.sid)
     socket_io.send(response, room=room)
 
 
