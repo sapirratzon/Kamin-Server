@@ -193,52 +193,32 @@ def on_join(data):
     # data = json.loads(request)
     token = data['token']
     room = data['discussion_id']
-    user = verify_auth_token(token)
+    # user = verify_auth_token(token)
     # username = user.get_user_name()
-    create_room(room)
-    if room in ROOMS:
-        # write to log that username join to room
-        join_room(room)
-        discussion_json_dict = ROOMS[room].to_json_dict()
-        # data = jsonify({"discussion": discussion_json_dict['discussion'], "tree": discussion_json_dict['tree']})
-        socket_io.emit("join_room",data=discussion_json_dict, room=room)
-    else:
-        socket_io.send('error', {'error': 'Unable to join room. Room does not exist.'})
-
-
-# @app.route('/api/addComment', methods=['POST'])
-# @auth.login_required
-# @socket_io.on("add comment")
-# def add_comment(request_comment):
-#     comment_dict = {}
-#     json_string = request_comment
-#     try:
-#         comment_dict = json.loads(json_string)
-#         response = discussion_controller.add_comment(comment_dict)
-#         socket_io.send("add comment", response) # change to send
-#     except IOError as e:
-#         app.logger.exception(e)
-#         abort(400)
-#         return
+    if room not in ROOMS:
+        create_room(room)
+    # write to log that username join to room
+    join_room(room)
+    discussion_json_dict = ROOMS[room].to_json_dict()
+    # data = jsonify({"discussion": discussion_json_dict['discussion'], "tree": discussion_json_dict['tree']})
+    socket_io.emit("join room", data=discussion_json_dict, room=request.sid)
+    # socket_io.emit("user_joined", data=username + "joined to discussion", room=room)
 
 @socket_io.on("add comment")
+@auth.verify_token
 def add_comment(request_comment):
     json_string = request_comment
-    try:
-        # TODO: isn't room should be a discussion object? or just room id?
-        # data = json.loads(json_string)
-        # room = data['room']
-        # comment_dict = data['comment']
-        comment_dict = json.loads(json_string)
-        room = comment_dict['discussionId']
-        response = discussion_controller.add_comment(comment_dict)
-        ROOMS[room].add_comment(response["comment"])
-        response["comment"] = response["comment"].to_client_dict()
-        socket_io.send(response, room=room)
-    except IOError as e:
-        app.logger.exception(e)
-        abort(400)
-        return
+    # TODO: isn't room should be a discussion object? or just room id?
+    # data = json.loads(json_string)
+    # room = data['room']
+    # comment_dict = data['comment']
+    comment_dict = json.loads(json_string)
+    room = comment_dict['discussionId']
+    response = discussion_controller.add_comment(comment_dict)
+    ROOMS[room].add_comment(response["comment"])
+    response["comment"] = response["comment"].to_client_dict()
+    socket_io.send(response, room=room)
+
 
 
 @socket_io.on('chat message')
