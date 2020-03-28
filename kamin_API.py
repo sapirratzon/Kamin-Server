@@ -205,7 +205,6 @@ def on_join(data):
     # socket_io.emit("user_joined", data=username + "joined to discussion", room=room)
 
 @socket_io.on("add comment")
-@auth.verify_token
 def add_comment(request_comment):
     json_string = request_comment
     # TODO: isn't room should be a discussion object? or just room id?
