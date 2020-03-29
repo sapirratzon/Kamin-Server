@@ -59,7 +59,7 @@ class DiscussionTree(Discussion):
         self.add_comment_recursive(self.root_comment, comment)
 
     def add_comment_recursive(self, current_node, comment):
-        if current_node.get_id() == comment.parent_id:
+        if current_node.get_id() == comment.get_parent_id():
             current_node.add_child_comment(comment)
             return
 
