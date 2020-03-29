@@ -65,7 +65,7 @@ def new_user():
         app.logger.exception(e)
         abort(500, e)
 
-
+# TODO: this is not safe in production
 @app.route('/api/getUser', methods=['GET'])
 def get_user():
     try:
@@ -104,7 +104,9 @@ def change_user_permission():
 @auth.login_required
 def get_auth_token():
     token = g.user.generate_auth_token(app.config['SECRET_KEY'], 600)
-    return jsonify({'token': token.decode('ascii'), 'duration': 600})
+    user = g.user
+    permission = user.get_permission()
+    return jsonify({'token': token.decode('ascii'), 'permission': permission, 'duration': 600})
 
 
 @app.route('/api/resource')
@@ -114,12 +116,10 @@ def get_resource():
     return jsonify({'data': 'Hello, %s!' % g.user.get_user_name()})
 
 
-### updated
-# @socket_io.on('loadDiscussion')
-@app.route('/api/getDiscussion', methods=['GET'])
-def get_discussion():
+@app.route('/api/getDiscussion/<string:discussion_id>', methods=['GET'])
+@auth.login_required
+def get_discussion(discussion_id):
     try:
-        discussion_id = request.args.get('discussion_id')
         discussion_tree = discussion_controller.get_discussion(discussion_id)
         #     room = discussion_tree.get_id()
         #     ROOMS[room] = discussion_tree
@@ -131,17 +131,13 @@ def get_discussion():
         return
 
 
-
-
-### updated
-# @socket_io.on('createDiscussion')
 @app.route('/api/createDiscussion', methods=['POST'])
-# @auth.login_required
+@auth.login_required
 def create_discussion():
     try:
-        # user = g.user
-        # if user.get_permission() is not Permission.MODERATOR.value:
-        #     raise Exception("User not permitted to create discussion!")
+        user = g.user
+        if user.get_permission() is not Permission.MODERATOR.value:
+            raise Exception("User not permitted to create discussion!")
         title = request.json["title"]
         if title is None:
             raise Exception("Title is missing, can't create discussion!")
@@ -174,14 +170,14 @@ def on_join(data):
     room = data['discussion_id']
     user = verify_auth_token(token)
     # TODO: for production only
-    # username = user.get_user_name()
+    username = user.get_user_name()
     if room not in ROOMS:
         create_room(room)
     # write to log that username join to room
     join_room(room)
     discussion_json_dict = ROOMS[room].to_json_dict()
     socket_io.emit("join room", data=discussion_json_dict, room=request.sid)
-    # socket_io.emit("user joined", data=username + " joined the discussion", room=room)
+    socket_io.emit("user joined", data=username + " joined the discussion", room=room)
 
 @socket_io.on("add comment")
 def add_comment(request_comment):
