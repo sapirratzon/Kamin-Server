@@ -210,5 +210,5 @@ def client_disconnect():
 
 if __name__ == '__main__':
     # app.debug = True
-    socket_io.run(app, debug=False)
+    socket_io.run(app, debug=False,host='0.0.0.0')
     print("bla")
