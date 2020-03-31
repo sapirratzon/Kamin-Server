@@ -79,15 +79,21 @@ class DiscussionController:
                               parent_id=comment_dict["parentId"], discussion_id=comment_dict["discussionId"],
                               extra_data=comment_dict["extra_data"], time_stamp=comment_dict["time_stamp"],
                               depth=comment_dict["depth"], child_comments=[], actions=[])
-        # , labels=comment_dict["labels"])
-        # Call KaminAI
-        kamin_response = None
-        # kamin_analyzed_data = AnalysisData(comment)
-        # comment.set_actions(kamin_analyzed_data.get_comment_actions())
-        # comment.set_labels(kamin_analyzed_data.get_comment_labels())
         comment.set_id(self.db_management.add_comment(comment))
+        # Call KaminAI
+        kamin_response_dict = get_kamin_response()
+        kamin_data = AnalysisData(discussion_id=comment.get_discussion_id(), triggered_comment_id=comment.get_id(),
+                                  relevant_users=kamin_response_dict["relevant_users"],
+                                  comment_labels=kamin_response_dict["comment_labels"],
+                                  actions=kamin_response_dict["actions"])
         response = {"comment": comment,
-                    "KaminAIresult": kamin_response}
-
+                    "KaminAIAnalyze": {"users": kamin_data.get_relevant_users(),
+                                       "labels": kamin_data.get_comment_labels(),
+                                       "actions": kamin_data.get_actions()}}
         return response
 
+
+def get_kamin_response():
+    kamin_dict = {"relevant_users": ["lahianig"], "comment_labels": ["CGF", "BGA"],
+                   "actions": {"1": "bla", "2": "bla bla"}}
+    return kamin_dict

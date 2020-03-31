@@ -1,20 +1,13 @@
-from enum import Enum
-from Entities.comment import CommentNode
 
 
 class AnalysisData:
 
-    def __init__(self, triggering_comment):
-        self.discussion_id = triggering_comment.get_discussion_id()
-        self.triggered_comment = triggering_comment
-        # general actions for discussion
-        self.general_actions = []
-
-        # list of actions for each comment <commentId,[actions]>
-        self.comment_actions = {}
-
-        # we probably won't need this but just in case
-        self.comment_labels = {}
+    def __init__(self, *args, **kwargs):
+        self.discussion_id = kwargs.get('discussion_id', "")
+        self.triggered_comment_id = kwargs.get('triggered_comment_id', "")
+        self.relevant_users = kwargs.get('relevant_users', [])
+        self.comment_labels = kwargs.get('comment_labels', {})
+        self.actions = kwargs.get('actions', {})
 
     def get_discussion_id(self):
         return self.discussion_id
@@ -23,30 +16,16 @@ class AnalysisData:
         self.discussion_id = discussion_id
 
     def get_triggered_comment(self):
-        return self.triggered_comment
+        return self.triggered_comment_id
 
-    def set_triggered_comment(self, comment):
-        self.triggered_comment = comment
+    def set_triggered_comment(self, comment_id):
+        self.triggered_comment_id = comment_id
 
-    def get_general_actions(self):
-        return self.general_actions
+    def get_relevant_users(self):
+        return self.relevant_users
 
-    def set_general_actions(self, actions):
-        self.general_actions = actions
-
-    def add_general_action(self, action):
-        self.general_actions.append(action)
-
-    def get_comment_actions(self):
-        return self.comment_actions
-
-    def set_comment_actions(self, comments_actions):
-        self.comment_actions = comments_actions
-
-    def add_comment_actions(self, comment, actions):
-        if not self.comment_actions.get(comment):
-            self.comment_actions[comment] = []
-        self.comment_actions[comment].append(actions)
+    def set_relevant_users(self, relevant_users):
+        self.relevant_users = relevant_users
 
     def get_comment_labels(self):
         return self.comment_labels
@@ -54,11 +33,11 @@ class AnalysisData:
     def set_comment_labels(self, comment_labels):
         self.comment_labels = comment_labels
 
-    def add_comment_labels(self, comment, labels):
-        if not self.comment_labels.get(comment):
-            self.comment_labels[comment] = []
-        self.comment_labels[comment].append(labels)
+    def get_actions(self):
+        return self.actions
 
-    def serialize(self):
-        return self.__dict__
+    def set_actions(self, actions):
+        self.actions = actions
+
+
 
