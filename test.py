@@ -13,7 +13,7 @@ def create_discussion_on_db(discussion_id=0, discussion_path='D:\\Kamin-Server\\
     root_comment = CommentNode(author=root_tree['node']['author'], text=root_tree['node']['text'], parent_id=None,
                                discussion_id=disc_id, extra_data=root_tree['node']['extra_data'],
                                labels=root_tree['node']['labels'] if 'labels' in root_tree['node'] else None,
-                               depth=0, time_stamp=datetime.fromtimestamp(root_tree['node']['timestamp']),
+                               depth=0, timestamp=datetime.fromtimestamp(root_tree['node']['timestamp']),
                                child_comments=[])
     response = dc.add_comment(root_comment)
     comment_id = response["comment_id"]
@@ -25,7 +25,7 @@ def traverse_add_comments(comment_tree, parent_id, depth, disc_id, dc):
     comment_node = CommentNode(author=comment_tree['node']['author'], text=comment_tree['node']['text'],
                                parent_id=parent_id, discussion_id=disc_id, extra_data=comment_tree['node']['extra_data'],
                                labels=comment_tree['node']['labels'] if 'labels' in comment_tree['node'] else None,
-                               depth=depth, time_stamp=datetime.fromtimestamp(comment_tree['node']['timestamp']),
+                               depth=depth, timestamp=datetime.fromtimestamp(comment_tree['node']['timestamp']),
                                child_comments=[])
     response = dc.add_comment(comment_node)
     comment_id = response["comment_id"]
@@ -92,7 +92,7 @@ print("bla")
 #                                               "name": "t3_4rl42j",
 #                                               "url": "https://www.reddit.com/r/changemyview/comments/4rl42j/cmv_abortion_should_remain_legal/",
 #                                               "ups": 17}, actions=[], labels={},
-#                            depth=1, time_stamp=1467843645, child_comments=[])
+#                            depth=1, timestamp=1467843645, child_comments=[])
 #
 # response = dc.add_comment(comment_node)
 # print("bla")
@@ -119,6 +119,6 @@ print("bla")
 #                                   parent_id=response["comment_id"], discussion_id=disc_id,
 #                                   extra_data={"full_labels": [["CBE", "omrih"], ["OCQ", "omrih"], ["CBE", "Amir"], ["OCQ", "Amir"]], "file:line": "4rl42j_01_03:1", "subreddit_id": "t5_2w2s8", "subreddit": "changemyview", "parent_id": "t3_4rl42j", "link_id": "t3_4rl42j", "ups": 1},
 #                                 actions=[], labels={"consolidated": ["CBE", "OCQ"]},
-#                                     depth=2, time_stamp=1467843827, child_comments=[])
+#                                     depth=2, timestamp=1467843827, child_comments=[])
 #
 # comment_id = disc_con.add_comment(comment_node2)

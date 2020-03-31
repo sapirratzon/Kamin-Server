@@ -1,6 +1,6 @@
 import json
 
-from flask import Flask, abort, request, jsonify, g
+from flask import Flask, abort, request, jsonify, g, url_for, render_template
 from flask_cors import CORS
 from flask_socketio import SocketIO, join_room, emit, send
 from flask_httpauth import HTTPBasicAuth
@@ -9,10 +9,11 @@ from Controllers.user_controller import UserController
 from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired)
 from Entities.user import Permission
 
+
+
 # initialization
 app = Flask(__name__)
 CORS(app)
-app.config['CORS_HEADERS'] = 'Content-Type'
 socket_io = SocketIO(app, cors_allowed_origins='*')
 app.config['SECRET_KEY'] = 'the quick brown fox jumps over the lazy dog'
 ROOMS = {}  # dict to track active rooms
@@ -65,7 +66,7 @@ def new_user():
         app.logger.exception(e)
         abort(500, e)
 
-
+# TODO: this is not safe in production
 @app.route('/api/getUser', methods=['GET'])
 def get_user():
     try:
@@ -114,10 +115,10 @@ def change_user_permission():
 @app.route('/api/login')
 @auth.login_required
 def get_auth_token():
-    token = g.user.generate_auth_token(app.config['SECRET_KEY'], 600)
+    token = g.user.generate_auth_token(app.config['SECRET_KEY'], 60000)
     user = g.user
     permission = user.get_permission()
-    return jsonify({'token': token.decode('ascii'), 'permission': permission, 'duration': 600})
+    return jsonify({'token': token.decode('ascii'), 'permission': permission, 'duration': 60000})
 
 
 @app.route('/api/resource')
@@ -131,7 +132,6 @@ def get_resource():
 @auth.login_required
 def get_discussion(discussion_id):
     try:
-        discussion_id = request.args.get('discussion_id')
         discussion_tree = discussion_controller.get_discussion(discussion_id)
         #     room = discussion_tree.get_id()
         #     ROOMS[room] = discussion_tree
@@ -143,29 +143,26 @@ def get_discussion(discussion_id):
         return
 
 
-### updated
-# @socket_io.on('createDiscussion')
 @app.route('/api/createDiscussion', methods=['POST'])
-# @auth.login_required
+@auth.login_required
 def create_discussion():
     try:
-        # user = g.user
-        # if user.get_permission() is not Permission.MODERATOR.value:
-        #     raise Exception("User not permitted to create discussion!")
+        user = g.user
+        if user.get_permission() is not Permission.MODERATOR.value:
+            raise Exception("User not permitted to create discussion!")
         title = request.json["title"]
         if title is None:
             raise Exception("Title is missing, can't create discussion!")
         categories = request.json["categories"]
         root_comment = json.loads(request.json["root_comment_dict"])
-        if root_comment is None or len(root_comment) is 0:
+        if root_comment is None or len(root_comment) is 0 or root_comment["text"] == "" or root_comment["text"] is None:
             raise Exception("Message is missing, can't create discussion!")
         discussion_tree = discussion_controller.create_discussion(title, categories, root_comment)
         room = discussion_tree.get_id()
         ROOMS[room] = discussion_tree
         # join_room(room)
         # socket_io.emit('createDiscussion', {'room': room, 'root_id': discussion_tree.get_root_comment_id()})
-        return jsonify(
-            {'discussion_id': discussion_tree.get_id(), "root_comment_id": discussion_tree.get_root_comment_id()}), 201
+        return jsonify({'discussion_id': discussion_tree.get_id(), "root_comment_id": discussion_tree.get_root_comment_id()}), 201
     except Exception as e:
         app.logger.exception(e)
         abort(500, e)
@@ -190,7 +187,6 @@ def on_join(data):
     # socket_io.emit("user joined", data=username + " joined the discussion", room=room)
     socket_io.emit("join room", data=discussion_json_dict, room=request.sid)
     socket_io.emit("user joined", data=username + " joined the discussion", room=room)
-
 
 @socket_io.on("add comment")
 def add_comment(request_comment):
@@ -221,6 +217,6 @@ def client_disconnect():
 
 
 if __name__ == '__main__':
-    # app.debug = True
+    #app.debug = True
     socket_io.run(app, debug=False)
     print("bla")
