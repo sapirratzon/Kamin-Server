@@ -13,7 +13,7 @@ class Comment:
         self.actions = kwargs.get('actions', [])
         self.labels = kwargs.get('labels', [])
         self.depth = kwargs.get('depth', 0)
-        self.timestamp = kwargs.get('timestamp', datetime.now())
+        self.timestamp = kwargs.get('timestamp', datetime.now().timestamp())
 
     """
     extra_data dict_keys(['file:line', 'subreddit', 'from_kind', 'from', 'title', 'num_comments', 'subreddit_id',
