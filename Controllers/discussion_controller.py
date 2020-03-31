@@ -91,6 +91,17 @@ class DiscussionController:
                                        "actions": kamin_data.get_actions()}}
         return response
 
+    def add_alert(self, alert_dict):
+        users = alert_dict["users"]
+        author = self.db_management.get_comment_author(alert_dict["parentId"])
+        users.append(author)
+        alert = CommentNode(author=alert_dict["author"], text=alert_dict["text"], parent_id=alert_dict["parentId"],
+                            discussion_id=alert_dict["discussionId"], depth=0, child_comments=[], actions=[])
+        alert.set_id(self.db_management.add_comment(alert))
+        alert = {"author": alert.get_author(), "text": alert.get_text()} ######################
+
+        return users, alert
+
 
 def get_kamin_response():
     kamin_dict = {"relevant_users": ["lahianig"], "comment_labels": ["CGF", "BGA"],

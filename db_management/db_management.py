@@ -73,4 +73,8 @@ class DBManagement:
         result = self.user_col.update_one({"_id": ObjectId(user.get_user_id())}, {"$set": {"permission": permission}})
         return result.acknowledged
 
+    def get_comment_author(self, comment_id):
+        comment = self.comment_col.find_one({"_id": ObjectId(comment_id)})
+        return comment["author"]
+
 

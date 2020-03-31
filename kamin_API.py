@@ -185,25 +185,30 @@ def on_join(data):
     discussion_json_dict = ROOMS[room].to_json_dict()
     socket_io.emit("join room", data=discussion_json_dict, room=UsersRoom[room][username])
     # socket_io.emit("user joined", data=username + " joined the discussion", room=room)
-    socket_io.emit("join room", data=discussion_json_dict, room=request.sid)
-    socket_io.emit("user joined", data=username + " joined the discussion", room=room)
+
 
 @socket_io.on("add comment")
 def add_comment(request_comment):
-    json_string = request_comment
-    comment_dict = json.loads(json_string)
+    comment_dict = json.loads(request_comment)
     room = comment_dict['discussionId']
     response = discussion_controller.add_comment(comment_dict)
     ROOMS[room].add_comment(response["comment"])
-    response["comment"] = response["comment"].to_client_dict()
-    socket_io.send(response, room=room)
-
     kamin_analyze = response["KaminAIAnalyze"]
-    # for user in kamin_analyze["users"]:
-    #     socket_io.send(response["comment"], room=room)
-
-#        socket_io.send({"labels": kamin_analyze["labels"], "actions": kamin_analyze["actions"]}, room=UsersRoom[room][user])
+    response["comment"] = response["comment"].to_client_dict()
     socket_io.send(response["comment"], room=room)
+    for user in kamin_analyze["users"]:
+        socket_io.emit("moderator alert", data={"labels": kamin_analyze["labels"], "actions": kamin_analyze["actions"]}, room=UsersRoom[room][user])
+
+
+@socket_io.on("add alert")
+def add_alert(request_alert):
+    alert_dict = json.loads(request_alert)
+    room = alert_dict['discussionId']
+    users, alert = discussion_controller.add_alert(alert_dict)
+    if len(users) is 0:
+        socket_io.emit("moderator alert", data=alert, room=room)
+    for user in users:
+        socket_io.emit("moderator alert", data=alert, room=UsersRoom[room][user])
 
 
 @socket_io.on('connect')
