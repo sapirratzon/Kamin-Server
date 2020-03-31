@@ -81,6 +81,17 @@ def get_user():
         abort(500, e)
 
 
+@app.route('/api/getUsers', methods=['GET'])
+def get_users():
+    try:
+        users, moderators = user_controller.get_users()
+        return jsonify(
+            {'users': users, 'moderators': moderators}), 200
+    except Exception as e:
+        app.logger.exception(e)
+        abort(500, e)
+
+
 @app.route('/api/changeUserPermission', methods=['GET'])
 @auth.login_required
 def change_user_permission():
@@ -104,7 +115,9 @@ def change_user_permission():
 @auth.login_required
 def get_auth_token():
     token = g.user.generate_auth_token(app.config['SECRET_KEY'], 600)
-    return jsonify({'token': token.decode('ascii'), 'duration': 600})
+    user = g.user
+    permission = user.get_permission()
+    return jsonify({'token': token.decode('ascii'), 'permission': permission, 'duration': 600})
 
 
 @app.route('/api/resource')
@@ -114,12 +127,14 @@ def get_resource():
     return jsonify({'data': 'Hello, %s!' % g.user.get_user_name()})
 
 
-@app.route('/api/getDiscussion', methods=['GET'])
-# @auth.login_required
-def get_discussion():
+@app.route('/api/getDiscussion/<string:discussion_id>', methods=['GET'])
+@auth.login_required
+def get_discussion(discussion_id):
     try:
         discussion_id = request.args.get('discussion_id')
         discussion_tree = discussion_controller.get_discussion(discussion_id)
+        #     room = discussion_tree.get_id()
+        #     ROOMS[room] = discussion_tree
         discussion_json_dict = discussion_tree.to_json_dict()
         return jsonify({"discussion": discussion_json_dict['discussion'], "tree": discussion_json_dict['tree']})
     except IOError as e:
@@ -128,6 +143,8 @@ def get_discussion():
         return
 
 
+### updated
+# @socket_io.on('createDiscussion')
 @app.route('/api/createDiscussion', methods=['POST'])
 # @auth.login_required
 def create_discussion():
@@ -145,6 +162,8 @@ def create_discussion():
         discussion_tree = discussion_controller.create_discussion(title, categories, root_comment)
         room = discussion_tree.get_id()
         ROOMS[room] = discussion_tree
+        # join_room(room)
+        # socket_io.emit('createDiscussion', {'room': room, 'root_id': discussion_tree.get_root_comment_id()})
         return jsonify(
             {'discussion_id': discussion_tree.get_id(), "root_comment_id": discussion_tree.get_root_comment_id()}), 201
     except Exception as e:
@@ -169,6 +188,8 @@ def on_join(data):
     discussion_json_dict = ROOMS[room].to_json_dict()
     socket_io.emit("join room", data=discussion_json_dict, room=UsersRoom[room][username])
     # socket_io.emit("user joined", data=username + " joined the discussion", room=room)
+    socket_io.emit("join room", data=discussion_json_dict, room=request.sid)
+    socket_io.emit("user joined", data=username + " joined the discussion", room=room)
 
 
 @socket_io.on("add comment")
@@ -179,6 +200,8 @@ def add_comment(request_comment):
     response = discussion_controller.add_comment(comment_dict)
     ROOMS[room].add_comment(response["comment"])
     response["comment"] = response["comment"].to_client_dict()
+    socket_io.send(response, room=room)
+
     kamin_analyze = response["KaminAIAnalyze"]
     # for user in kamin_analyze["users"]:
     #     socket_io.send(response["comment"], room=room)
