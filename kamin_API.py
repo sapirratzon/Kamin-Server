@@ -81,6 +81,17 @@ def get_user():
         abort(500, e)
 
 
+@app.route('/api/getUsers', methods=['GET'])
+def get_users():
+    try:
+        users, moderators = user_controller.get_users()
+        return jsonify(
+            {'users': users, 'moderators': moderators}), 200
+    except Exception as e:
+        app.logger.exception(e)
+        abort(500, e)
+
+
 @app.route('/api/changeUserPermission', methods=['GET'])
 @auth.login_required
 def change_user_permission():
