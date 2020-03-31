@@ -35,7 +35,7 @@ class DiscussionController:
                                       text=comment_dict["text"], parent_id=comment_dict["parentId"],
                                       discussion_id=comment_dict["discussionId"], extra_data=comment_dict["extra_data"],
                                       actions=comment_dict["actions"], labels=comment_dict["labels"],
-                                      depth=comment_dict["depth"], time_stamp=comment_dict["time_stamp"],
+                                      depth=comment_dict["depth"], timestamp=comment_dict["timestamp"],
                                       child_comments=[], is_alerted=comment_dict["isAlerted"])
                 return comment
 
@@ -48,7 +48,7 @@ class DiscussionController:
                                   parent_id=comment_dict["parentId"], discussion_id=comment_dict["discussionId"],
                                   extra_data=comment_dict["extra_data"], actions=comment_dict["actions"],
                                   labels=comment_dict["labels"], depth=comment_dict["depth"],
-                                  time_stamp=comment_dict["time_stamp"], child_comments=child_list,
+                                  timestamp=comment_dict["timestamp"], child_comments=child_list,
                                   is_alerted=comment_dict["isAlerted"])
             return comment
         else:
@@ -57,7 +57,7 @@ class DiscussionController:
                                       text=comment_dict["text"], parent_id=comment_dict["parentId"],
                                       discussion_id=comment_dict["discussionId"], extra_data=comment_dict["extra_data"],
                                       actions=comment_dict["actions"], labels=comment_dict["labels"],
-                                      depth=comment_dict["depth"], time_stamp=comment_dict["time_stamp"],
+                                      depth=comment_dict["depth"], timestamp=comment_dict["timestamp"],
                                       child_comments=[])
                 return comment
 
@@ -71,13 +71,13 @@ class DiscussionController:
                                   parent_id=comment_dict["parentId"], discussion_id=comment_dict["discussionId"],
                                   extra_data=comment_dict["extra_data"], actions=comment_dict["actions"],
                                   labels=comment_dict["labels"], depth=comment_dict["depth"],
-                                  time_stamp=comment_dict["time_stamp"], child_comments=child_list)
+                                  timestamp=comment_dict["timestamp"], child_comments=child_list)
             return comment
 
     def add_comment(self, comment_dict):
         comment = CommentNode(author=comment_dict["author"], text=comment_dict["text"],
                               parent_id=comment_dict["parentId"], discussion_id=comment_dict["discussionId"],
-                              extra_data=comment_dict["extra_data"], time_stamp=comment_dict["time_stamp"],
+                              extra_data=comment_dict["extra_data"], timestamp=comment_dict["timestamp"],
                               depth=comment_dict["depth"], child_comments=[], actions=[])
         # , labels=comment_dict["labels"])
         # Call KaminAI

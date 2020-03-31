@@ -1,5 +1,6 @@
 import pymongo
 from bson.objectid import ObjectId
+from datetime import datetime
 
 client = pymongo.MongoClient("mongodb+srv://gal_kamin:gal123456@cluster0-erofa.mongodb.net/test?retryWrites=true&w=majority")
 
@@ -30,6 +31,7 @@ class DBManagement:
         return discussion, comments_dict
 
     def add_comment(self, comment):
+        comment.set_timestamp(datetime.now().timestamp())
         result = self.comment_col.insert_one(comment.to_db_dict())
         comment_id = result.inserted_id.binary.hex()
         comment.set_id(comment_id)
