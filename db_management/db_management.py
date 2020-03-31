@@ -59,6 +59,16 @@ class DBManagement:
         user = self.user_col.find_one({"user_name": username})
         return user
 
+    def get_users(self):
+        users = []
+        moderators = []
+        for user in self.user_col.find():
+            if user["permission"] == 1:
+                users.append(user["user_name"])
+            if user["permission"] == 2:
+                moderators.append(user["user_name"])
+        return users, moderators
+
     def change_user_permission(self, user, permission):
         result = self.user_col.update_one({"_id": ObjectId(user.get_user_id())}, {"$set": {"permission": permission}})
         return result.acknowledged
