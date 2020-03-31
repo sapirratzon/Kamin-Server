@@ -13,7 +13,7 @@ class Comment:
         self.actions = kwargs.get('actions', [])
         self.labels = kwargs.get('labels', [])
         self.depth = kwargs.get('depth', 0)
-        self.time_stamp = kwargs.get('time_stamp', datetime.now())
+        self.timestamp = kwargs.get('timestamp', datetime.now().timestamp())
 
     """
     extra_data dict_keys(['file:line', 'subreddit', 'from_kind', 'from', 'title', 'num_comments', 'subreddit_id',
@@ -56,11 +56,11 @@ class Comment:
     def set_depth(self, input_depth):
         self.depth = input_depth
 
-    def get_time_stamp(self):
-        return self.time_stamp
+    def get_timestamp(self):
+        return self.timestamp
 
-    def set_time_stamp(self, input_time_stamp):
-        self.time_stamp = input_time_stamp
+    def set_timestamp(self, input_timestamp):
+        self.timestamp = input_timestamp
 
     def serialize(self):
         return self.__dict__
@@ -97,7 +97,7 @@ class Comment:
 
     def __str__(self):
         return self.get_depth_space() + str(self._id) + ", " + self.author + ": " + str(
-            self.get_time_stamp()) + ", depth = " + str(self.get_depth()) + ", parent id = " + str(
+            self.get_timestamp()) + ", depth = " + str(self.get_depth()) + ", parent id = " + str(
             self.parent_id)
 
 
@@ -125,7 +125,7 @@ class CommentNode(Comment):
             "parentId": self.parent_id,
             "discussionId": self.discussion_id,
             "depth": self.depth,
-            "time_stamp": self.time_stamp,
+            "timestamp": self.timestamp,
             "labels": self.labels,
             "actions": self.actions,
             "extra_data": self.extra_data,
@@ -140,7 +140,7 @@ class CommentNode(Comment):
             "parentId": self.parent_id,
             "discussionId": self.discussion_id,
             "depth": self.depth,
-            "time_stamp": self.time_stamp,
+            "timestamp": self.timestamp,
             "labels": self.labels,
             "actions": self.actions,
             "extra_data": self.extra_data,

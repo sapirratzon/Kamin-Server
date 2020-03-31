@@ -5,29 +5,29 @@ from datetime import datetime
 import TreeTools.TreeTools as tt
 
 
-def create_discussion_on_db(discussion_id=0, discussion_path='D:\\Kamin-Server\\resources\\discussions\\80919_labeled_trees.txt'):
+def create_discussion_on_db(discussion_id=0, discussion_path='resources\\discussions\\80919_labeled_trees.txt'):
     trees = tt.load_list_of_trees(discussion_path)
     root_tree = trees[discussion_id]
     dc = DiscussionController()
-    disc_id = dc.create_discussion(root_tree['node']['extra_data']['title'], ["Life", "Pregnant", "Abortion"], None)
     root_comment = CommentNode(author=root_tree['node']['author'], text=root_tree['node']['text'], parent_id=None,
-                               discussion_id=disc_id, extra_data=root_tree['node']['extra_data'],
+                               discussion_id=None, extra_data=root_tree['node']['extra_data'],
                                labels=root_tree['node']['labels'] if 'labels' in root_tree['node'] else None,
-                               depth=0, time_stamp=datetime.fromtimestamp(root_tree['node']['timestamp']),
+                               depth=0, timestamp=datetime.fromtimestamp(root_tree['node']['timestamp']),
                                child_comments=[])
-    response = dc.add_comment(root_comment)
-    comment_id = response["comment_id"]
-    root_comment.set_id(comment_id)
+    disc_id = dc.create_discussion(root_tree['node']['extra_data']['title'], ["Life", "Pregnant", "Abortion"],
+                                   root_comment.to_client_dict())
+
     [traverse_add_comments(child, root_comment.get_id(), 1, disc_id, dc) for child in root_tree['children']]
 
 
 def traverse_add_comments(comment_tree, parent_id, depth, disc_id, dc):
     comment_node = CommentNode(author=comment_tree['node']['author'], text=comment_tree['node']['text'],
-                               parent_id=parent_id, discussion_id=disc_id, extra_data=comment_tree['node']['extra_data'],
+                               parent_id=parent_id, discussion_id=disc_id,
+                               extra_data=comment_tree['node']['extra_data'],
                                labels=comment_tree['node']['labels'] if 'labels' in comment_tree['node'] else None,
-                               depth=depth, time_stamp=datetime.fromtimestamp(comment_tree['node']['timestamp']),
+                               depth=depth, timestamp=datetime.fromtimestamp(comment_tree['node']['timestamp']),
                                child_comments=[])
-    response = dc.add_comment(comment_node)
+    response = dc.add_comment(comment_node.to_client_dict())
     comment_id = response["comment_id"]
     comment_node.set_id(comment_id)
     [traverse_add_comments(child, comment_node.get_id(), depth + 1, disc_id, dc) for child in
@@ -50,27 +50,13 @@ def get_user():
     return user_controller.get_user("gal21")
 
 
-# create_discussion_on_db()
-discussion = get_discussion_from_db()
-json_dict = discussion.to_json_dict()
+create_discussion_on_db()
+# discussion = get_discussion_from_db()
+# json_dict = discussion.to_json_dict()
 # user_id = add_new_user()
 # user = get_user()
 # val = user.verify_password("1234")
 print("bla")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 # dc = DiscussionController()
 # disc_id = dc.create_discussion("good people", ["life", "fun", "bla"], None)
@@ -92,12 +78,12 @@ print("bla")
 #                                               "name": "t3_4rl42j",
 #                                               "url": "https://www.reddit.com/r/changemyview/comments/4rl42j/cmv_abortion_should_remain_legal/",
 #                                               "ups": 17}, actions=[], labels={},
-#                            depth=1, time_stamp=1467843645, child_comments=[])
+#                            depth=1, timestamp=1467843645, child_comments=[])
 #
 # response = dc.add_comment(comment_node)
 # print("bla")
 
-#b'^\x07\x83\xdebw\x08\x18\x17\xf4s\x8f'
+# b'^\x07\x83\xdebw\x08\x18\x17\xf4s\x8f'
 # id = ObjectId('5e0787f0b6758c5c0464e606')
 # id2 = ObjectId(b'XgeD3WJ3CBgX9HOO')
 # print("bla")
@@ -112,13 +98,11 @@ print("bla")
 # print(id)
 
 
-
-
 #
 # comment_node2 = CommentNode(author="Hq3473", text="Up until which point should abortion be legal? Should a woman be able to abort the fetus on week 36?",
 #                                   parent_id=response["comment_id"], discussion_id=disc_id,
 #                                   extra_data={"full_labels": [["CBE", "omrih"], ["OCQ", "omrih"], ["CBE", "Amir"], ["OCQ", "Amir"]], "file:line": "4rl42j_01_03:1", "subreddit_id": "t5_2w2s8", "subreddit": "changemyview", "parent_id": "t3_4rl42j", "link_id": "t3_4rl42j", "ups": 1},
 #                                 actions=[], labels={"consolidated": ["CBE", "OCQ"]},
-#                                     depth=2, time_stamp=1467843827, child_comments=[])
+#                                     depth=2, timestamp=1467843827, child_comments=[])
 #
 # comment_id = disc_con.add_comment(comment_node2)

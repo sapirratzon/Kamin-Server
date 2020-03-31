@@ -1,5 +1,6 @@
 import pymongo
 from bson.objectid import ObjectId
+from datetime import datetime
 
 client = pymongo.MongoClient("mongodb+srv://gal_kamin:gal123456@cluster0-erofa.mongodb.net/test?retryWrites=true&w=majority")
 
@@ -30,6 +31,7 @@ class DBManagement:
         return discussion, comments_dict
 
     def add_comment(self, comment):
+        comment.set_timestamp(datetime.now().timestamp())
         result = self.comment_col.insert_one(comment.to_db_dict())
         comment_id = result.inserted_id.binary.hex()
         comment.set_id(comment_id)
@@ -56,6 +58,16 @@ class DBManagement:
     def get_user(self, username):
         user = self.user_col.find_one({"user_name": username})
         return user
+
+    def get_users(self):
+        users = []
+        moderators = []
+        for user in self.user_col.find():
+            if user["permission"] == 1:
+                users.append(user["user_name"])
+            if user["permission"] == 2:
+                moderators.append(user["user_name"])
+        return users, moderators
 
     def change_user_permission(self, user, permission):
         result = self.user_col.update_one({"_id": ObjectId(user.get_user_id())}, {"$set": {"permission": permission}})
