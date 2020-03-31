@@ -65,7 +65,7 @@ def new_user():
         app.logger.exception(e)
         abort(500, e)
 
-
+# TODO: this is not safe in production
 @app.route('/api/getUser', methods=['GET'])
 def get_user():
     try:
@@ -127,9 +127,8 @@ def get_resource():
     return jsonify({'data': 'Hello, %s!' % g.user.get_user_name()})
 
 
-### updated
-# @socket_io.on('loadDiscussion')
 @app.route('/api/getDiscussion/<string:discussion_id>', methods=['GET'])
+@auth.login_required
 def get_discussion(discussion_id):
     try:
         discussion_tree = discussion_controller.get_discussion(discussion_id)
@@ -143,17 +142,13 @@ def get_discussion(discussion_id):
         return
 
 
-
-
-### updated
-# @socket_io.on('createDiscussion')
 @app.route('/api/createDiscussion', methods=['POST'])
-# @auth.login_required
+@auth.login_required
 def create_discussion():
     try:
-        # user = g.user
-        # if user.get_permission() is not Permission.MODERATOR.value:
-        #     raise Exception("User not permitted to create discussion!")
+        user = g.user
+        if user.get_permission() is not Permission.MODERATOR.value:
+            raise Exception("User not permitted to create discussion!")
         title = request.json["title"]
         if title is None:
             raise Exception("Title is missing, can't create discussion!")
@@ -175,41 +170,35 @@ def create_discussion():
 
 
 
+def create_room(room):
+    ROOMS[room] = discussion_controller.get_discussion(room)
+
+
 @socket_io.on('join')
 def on_join(data):
-    request = json.loads(data)
-    token = request['token']
+    # data = json.loads(request)
+    token = data['token']
     room = data['discussion_id']
     user = verify_auth_token(token)
+    # TODO: for production only
     username = user.get_user_name()
-    if room in ROOMS:
-        # write to log that username join to room
-        join_room(room)
-        socket_io.send(ROOMS[room].to_json_dict()['tree'], room=room)
-    else:
-        socket_io.send('error', {'error': 'Unable to join room. Room does not exist.'})
+    if room not in ROOMS:
+        create_room(room)
+    # write to log that username join to room
+    join_room(room)
+    discussion_json_dict = ROOMS[room].to_json_dict()
+    socket_io.emit("join room", data=discussion_json_dict, room=request.sid)
+    socket_io.emit("user joined", data=username + " joined the discussion", room=room)
 
-
-# @app.route('/api/addComment', methods=['POST'])
-# @auth.login_required
 @socket_io.on("add comment")
 def add_comment(request_comment):
-    comment_dict = {}
     json_string = request_comment
-    try:
-        comment_dict = json.loads(json_string)
-        response = discussion_controller.add_comment(comment_dict)
-        socket_io.send("add comment", response) # change to send
-    except IOError as e:
-        app.logger.exception(e)
-        abort(400)
-        return
-
-
-@socket_io.on('chat message')
-def chat_message(message):
-    print(message)
-    emit('chat message', {'data': message})
+    comment_dict = json.loads(json_string)
+    room = comment_dict['discussionId']
+    response = discussion_controller.add_comment(comment_dict)
+    ROOMS[room].add_comment(response["comment"])
+    response["comment"] = response["comment"].to_client_dict()
+    socket_io.send(response, room=room)
 
 
 @socket_io.on('connect')
@@ -220,6 +209,7 @@ def client_connect():
 @socket_io.on('disconnect')
 def client_disconnect():
     print("client disconnected")
+
 
 if __name__ == '__main__':
     #app.debug = True
