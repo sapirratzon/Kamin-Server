@@ -91,15 +91,15 @@ def get_users():
         abort(500, e)
 
 
-@app.route('/api/changeUserPermission', methods=['GET'])
+@app.route('/api/changeUserPermission', methods=['POST'])
 @auth.login_required
 def change_user_permission():
     try:
         user = g.user
         if user.get_permission() is not Permission.ROOT.value:
             raise Exception("Only ROOT user permitted to change permissions!")
-        permission = request.args.get('permission')
-        username = request.args.get('username')
+        permission = json.loads(request.data)["permission"]
+        username = json.loads(request.data)["username"]
         user = user_controller.get_user(username=username)
         if not user:
             raise Exception("username is not exist!")
