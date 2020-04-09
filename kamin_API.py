@@ -91,6 +91,7 @@ def get_users():
         abort(500, e)
 
 
+
 @app.route('/api/getUserStatisticsInDiscussion', methods=['GET'])
 def get_user_discussion_statistics():
     try:
@@ -114,8 +115,8 @@ def change_user_permission():
         user = g.user
         if user.get_permission() is not Permission.ROOT.value:
             raise Exception("Only ROOT user permitted to change permissions!")
-        permission = request.args.get('permission')
-        username = request.args.get('username')
+        permission = json.loads(request.data)["permission"]
+        username = json.loads(request.data)["username"]
         user = user_controller.get_user(username=username)
         if not user:
             raise Exception("username is not exist!")
@@ -156,6 +157,17 @@ def get_discussion(discussion_id):
         abort(400)
         return
 
+
+@app.route('/api/getDiscussions', methods=['GET'])
+# @auth.login_required
+def get_discussions():
+    try:
+        discussions_list = discussion_controller.get_discussions()
+        return jsonify({"discussions": discussions_list})
+    except IOError as e:
+        app.logger.exception(e)
+        abort(400)
+        return
 
 @app.route('/api/createDiscussion', methods=['POST'])
 @auth.login_required

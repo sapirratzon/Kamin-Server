@@ -22,6 +22,10 @@ class DiscussionController:
 
         return discussion_tree
 
+    def get_discussions(self):
+        discussions = self.db_management.get_discussions()
+        return discussions
+
     def get_discussion(self, discussion_id):
         discussion, comments = self.db_management.get_discussion(discussion_id)
         root_comment_dict = comments[discussion["root_comment_id"]]

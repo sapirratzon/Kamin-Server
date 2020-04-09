@@ -24,6 +24,13 @@ class DBManagement:
         discussion.set_id(result.inserted_id.binary.hex())
         return result.inserted_id.binary.hex()
 
+    def get_discussions(self):
+        discussions = self.discussion_col.find()
+        discussions_list = {}
+        for discussion in discussions:
+            discussions_list[discussion["_id"].binary.hex()] = discussion["title"]
+        return discussions_list
+
     def get_discussion(self, discussion_id):
         discussion = self.discussion_col.find_one({"_id": ObjectId(discussion_id)})
         comments = self.comment_col.find({"discussionId": discussion_id})
