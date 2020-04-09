@@ -141,6 +141,17 @@ def get_discussion(discussion_id):
         return
 
 
+@app.route('/api/getDiscussions', methods=['GET'])
+# @auth.login_required
+def get_discussions():
+    try:
+        discussions_list = discussion_controller.get_discussions()
+        return jsonify({"discussions": discussions_list})
+    except IOError as e:
+        app.logger.exception(e)
+        abort(400)
+        return
+
 @app.route('/api/createDiscussion', methods=['POST'])
 @auth.login_required
 def create_discussion():
