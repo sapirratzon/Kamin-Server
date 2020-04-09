@@ -10,12 +10,14 @@ class DiscussionController:
     db_management = DBManagement()
 
     def create_discussion(self, title, categories, root_comment_dict):
-        disc = Discussion(title=title, categories=categories, root_comment_id=None)
+        disc = Discussion(title=title, categories=categories, root_comment_id=None, num_of_participants=0,
+                          total_comments_num=0)
         disc_id = self.db_management.create_discussion(disc)
         root_comment_dict["discussionId"] = disc_id
         root_comment_dict["parentId"] = None
         root_comment = self.add_comment(root_comment_dict)["comment"]
-        discussion_tree = DiscussionTree(title=title, categories=categories, root_comment_id=root_comment.get_id(), root_comment=root_comment)
+        discussion_tree = DiscussionTree(title=title, categories=categories, root_comment_id=root_comment.get_id(),
+                                         num_of_participants=0, total_comments_num=0, root_comment=root_comment)
         discussion_tree.set_id(disc_id)
 
         return discussion_tree

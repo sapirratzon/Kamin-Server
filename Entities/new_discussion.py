@@ -6,6 +6,8 @@ class Discussion:
         self.title = kwargs.get('title', "")
         self.categories = kwargs.get('categories', [])
         self.root_comment_id = kwargs.get('root_comment_id', 0)
+        self.num_of_participants = kwargs.get('num_of_participants', 0)
+        self.total_comments_num = kwargs.get('total_comments_num', 0)
 
     def get_id(self):
         return self.discussion_id
@@ -31,11 +33,25 @@ class Discussion:
     def set_root_comment_id(self, comment_id):
         self.root_comment_id = comment_id
 
+    def get_num_of_participants(self):
+        return self.num_of_participants
+
+    def set_num_of_participants(self, num_of_participants):
+        self.num_of_participants = num_of_participants
+
+    def get_total_comments_num(self):
+        return self.total_comments_num
+
+    def set_total_comments_num(self, total_comments_num):
+        self.total_comments_num = total_comments_num
+
     def to_dict(self):
         return {
                 'categories': self.categories,
                 'title': self.title,
-                'root_comment_id': self.root_comment_id
+                'root_comment_id': self.root_comment_id,
+                'num_of_participants': self.num_of_participants,
+                'total_comments_num': self.total_comments_num
                 }
 
 

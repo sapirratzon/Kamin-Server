@@ -91,6 +91,22 @@ def get_users():
         abort(500, e)
 
 
+@app.route('/api/getUserStatisticsInDiscussion', methods=['GET'])
+def get_user_discussion_statistics():
+    try:
+        username = request.json.get('username')
+        discussion_id = request.json.get('discussionId')
+        if username is None or discussion_id is None:
+            raise Exception("username or discussionId is Missing, can't get statistics!")
+        if user_controller.get_user(username=username) is not None:
+            raise Exception("username is not exist, can't create new user!")
+        statistics = {}
+        return jsonify({'comments_number': statistics["comments_num"], 'words_amount': statistics["comments_num"]}), 200
+    except Exception as e:
+        app.logger.exception(e)
+        abort(500, e)
+
+
 @app.route('/api/changeUserPermission', methods=['GET'])
 @auth.login_required
 def change_user_permission():
@@ -148,13 +164,18 @@ def create_discussion():
         user = g.user
         if user.get_permission() is not Permission.MODERATOR.value:
             raise Exception("User not permitted to create discussion!")
-        title = request.json["title"]
-        if title is None:
+        data = dict(request.json)
+        if not data.keys().__contains__("title") or data["title"] is None:
             raise Exception("Title is missing, can't create discussion!")
-        categories = request.json["categories"]
-        root_comment = json.loads(request.json["root_comment_dict"])
+        title = data["title"]
+        if not data.keys().__contains__("categories"):
+            raise Exception("Categories is missing, can't create discussion!")
+        categories = data["categories"]
+        if not data.keys().__contains__("root_comment_dict"):
+            raise Exception("root_comment_dict Key is missing, can't create discussion!")
+        root_comment = dict(data["root_comment_dict"])
         if root_comment is None or len(root_comment) is 0 or root_comment["text"] == "" or root_comment["text"] is None:
-            raise Exception("Message is missing, can't create discussion!")
+            raise Exception("First comment is missing, can't create discussion!")
         discussion_tree = discussion_controller.create_discussion(title, categories, root_comment)
         room = discussion_tree.get_id()
         ROOMS[room] = discussion_tree
