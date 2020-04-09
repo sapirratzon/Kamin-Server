@@ -10,10 +10,9 @@ class Comment:
         self.parent_id = kwargs.get('parent_id', '')
         self.discussion_id = kwargs.get('discussion_id', '')
         self.extra_data = kwargs.get('extra_data', {})
-        self.actions = kwargs.get('actions', [])
-        self.labels = kwargs.get('labels', [])
         self.depth = kwargs.get('depth', 0)
         self.timestamp = kwargs.get('timestamp', datetime.now().timestamp())
+        self.is_alert = kwargs.get('is_alert', False)
 
     """
     extra_data dict_keys(['file:line', 'subreddit', 'from_kind', 'from', 'title', 'num_comments', 'subreddit_id',
@@ -62,32 +61,17 @@ class Comment:
     def set_timestamp(self, input_timestamp):
         self.timestamp = input_timestamp
 
-    def serialize(self):
-        return self.__dict__
-
-    def get_actions(self):
-        return self.actions
-
-    def set_actions(self, input_comment_actions):
-        self.actions = input_comment_actions
-
-    def add_action(self, action):
-        self.actions.append(action)
-
-    def get_labels(self):
-        return self.labels
-
-    def set_labels(self, input_comment_labels):
-        self.labels = input_comment_labels
-
-    def add_label(self, comment_tag):
-        self.labels.append(comment_tag)
-
     def get_extra_data(self):
         return self.extra_data
 
     def set_extra_data(self, extra_data):
         self.extra_data = extra_data
+
+    def get_is_alert(self):
+        return self.is_alert
+
+    def set_is_alert(self, is_alert):
+        self.is_alert = is_alert
 
     def get_depth_space(self):
         space = ""
@@ -106,8 +90,6 @@ class CommentNode(Comment):
         super().__init__(*args, **kwargs)
         self._id = kwargs.get('id', "")
         self.child_comments = kwargs.get('child_comments', [])
-        self.is_alerted = kwargs.get('is_alerted', False)
-        self.alert = kwargs.get('alert', "")
 
     def add_child_comment(self, comment):
         self.child_comments.append(comment)
@@ -126,10 +108,9 @@ class CommentNode(Comment):
             "discussionId": self.discussion_id,
             "depth": self.depth,
             "timestamp": self.timestamp,
-            "labels": self.labels,
-            "actions": self.actions,
             "extra_data": self.extra_data,
-            "child_comments": self.child_comments
+            "child_comments": self.child_comments,
+            "is_alert": self.is_alert
         }
 
     def to_client_dict(self):
@@ -141,9 +122,6 @@ class CommentNode(Comment):
             "discussionId": self.discussion_id,
             "depth": self.depth,
             "timestamp": self.timestamp,
-            "labels": self.labels,
-            "actions": self.actions,
             "extra_data": self.extra_data,
-            "isAlerted": self.is_alerted,
-            "alert": self.alert
+            "is_alert": self.is_alert
         }

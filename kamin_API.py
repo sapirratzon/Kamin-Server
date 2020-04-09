@@ -91,24 +91,40 @@ def get_users():
         abort(500, e)
 
 
-
-@app.route('/api/getUserStatisticsInDiscussion', methods=['GET'])
+@app.route('/api/getUserStatisticsInDiscussion', methods=['POST'])
 def get_user_discussion_statistics():
     try:
         username = request.json.get('username')
         discussion_id = request.json.get('discussionId')
         if username is None or discussion_id is None:
             raise Exception("username or discussionId is Missing, can't get statistics!")
-        if user_controller.get_user(username=username) is not None:
-            raise Exception("username is not exist, can't create new user!")
-        statistics = {}
-        return jsonify({'comments_number': statistics["comments_num"], 'words_amount': statistics["comments_num"]}), 200
+        if user_controller.get_user(username=username) is None:
+            raise Exception("username is not exist, can't get statistics!")
+        statistics = discussion_controller.get_user_discussion_statistics(username, discussion_id)
+        if statistics is None:
+            raise Exception("Statistics of username in discussionId is not exist!")
+        return jsonify({"user_in_discussion_statistics": statistics}), 200
     except Exception as e:
         app.logger.exception(e)
         abort(500, e)
 
 
-@app.route('/api/changeUserPermission', methods=['GET'])
+@app.route('/api/getDiscussionStatistics', methods=['POST'])
+def get_discussion_statistics():
+    try:
+        discussion_id = request.json.get('discussionId')
+        if discussion_id is None:
+            raise Exception("discussionId is Missing, can't get statistics!")
+        statistics = discussion_controller.get_discussion_statistics(discussion_id)
+        if statistics is None:
+            raise Exception("Statistics of username in discussionId is not exist!")
+        return jsonify({"discussion_statistics": statistics}), 200
+    except Exception as e:
+        app.logger.exception(e)
+        abort(500, e)
+
+
+@app.route('/api/changeUserPermission', methods=['POST'])
 @auth.login_required
 def change_user_permission():
     try:
@@ -148,6 +164,8 @@ def get_resource():
 def get_discussion(discussion_id):
     try:
         discussion_tree = discussion_controller.get_discussion(discussion_id)
+        if discussion_tree is None:
+            raise Exception("discussion_id is not exist!")
         #     room = discussion_tree.get_id()
         #     ROOMS[room] = discussion_tree
         discussion_json_dict = discussion_tree.to_json_dict()
@@ -158,16 +176,18 @@ def get_discussion(discussion_id):
         return
 
 
-@app.route('/api/getDiscussions', methods=['GET'])
-# @auth.login_required
-def get_discussions():
+@app.route('/api/getDiscussions/<string:is_simulation>', methods=['GET'])
+@auth.login_required
+def get_discussions(is_simulation):
     try:
-        discussions_list = discussion_controller.get_discussions()
+        is_simulation = bool(is_simulation)
+        discussions_list = discussion_controller.get_discussions(is_simulation)
         return jsonify({"discussions": discussions_list})
     except IOError as e:
         app.logger.exception(e)
         abort(400)
         return
+
 
 @app.route('/api/createDiscussion', methods=['POST'])
 @auth.login_required
@@ -188,34 +208,46 @@ def create_discussion():
         root_comment = dict(data["root_comment_dict"])
         if root_comment is None or len(root_comment) is 0 or root_comment["text"] == "" or root_comment["text"] is None:
             raise Exception("First comment is missing, can't create discussion!")
-        discussion_tree = discussion_controller.create_discussion(title, categories, root_comment)
+        # if not data.keys().__contains__("configuration"):
+        #     raise Exception("configuration is missing, can't create discussion!")
+        configuration = data["configuration"]
+        discussion_tree = discussion_controller.create_discussion(title, categories, root_comment, configuration)
         room = discussion_tree.get_id()
         ROOMS[room] = discussion_tree
         return jsonify(
             {'discussion_id': discussion_tree.get_id(), "root_comment_id": discussion_tree.get_root_comment_id()}), 201
     except Exception as e:
         app.logger.exception(e)
+        abort(400, e)
+        return
+
+
+@app.route('/api/endRealTimeSession/<string:discussion_id>', methods=['GET'])
+@auth.login_required
+def end_real_time_session(discussion_id):
+    try:
+        user = g.user
+        if user.get_permission() is not Permission.MODERATOR.value:
+            raise Exception("User not permitted to end real-time session!")
+        response = discussion_controller.end_real_time_session(discussion_id)
+        return jsonify(response)
+    except Exception as e:
+        app.logger.exception(e)
         abort(500, e)
         return
 
 
-def create_room(room):
-    ROOMS[room] = discussion_controller.get_discussion(room)
-
-
 @socket_io.on('join')
 def on_join(data):
-    # data = json.loads(request)
     token = data['token']
     room = data['discussion_id']
     user = verify_auth_token(token)
-    # TODO: for production only
     username = user.get_user_name()
     if room not in ROOMS:
-        create_room(room)
-    # write to log that username join to room
+        ROOMS[room] = discussion_controller.get_discussion(room)
     join_room(room)
     discussion_json_dict = ROOMS[room].to_json_dict()
+    discussion_controller.add_user_discussion_statistics(username, room)
     socket_io.emit("join room", data=discussion_json_dict, room=request.sid)
     socket_io.emit("user joined", data=username + " joined the discussion", room=room)
 

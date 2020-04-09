@@ -8,6 +8,8 @@ class Discussion:
         self.root_comment_id = kwargs.get('root_comment_id', 0)
         self.num_of_participants = kwargs.get('num_of_participants', 0)
         self.total_comments_num = kwargs.get('total_comments_num', 0)
+        self.is_simulation = kwargs.get('is_simulation', False)
+        self.configuration = kwargs.get('configuration', {})
 
     def get_id(self):
         return self.discussion_id
@@ -45,13 +47,27 @@ class Discussion:
     def set_total_comments_num(self, total_comments_num):
         self.total_comments_num = total_comments_num
 
+    def get_is_simulation(self):
+        return self.is_simulation
+
+    def set_is_simulation(self, is_simulation):
+        self.is_simulation = is_simulation
+
+    def get_configuration(self):
+        return self.is_simulation
+
+    def set_configuration(self, is_simulation):
+        self.is_simulation = is_simulation
+
     def to_dict(self):
         return {
-                'categories': self.categories,
-                'title': self.title,
-                'root_comment_id': self.root_comment_id,
-                'num_of_participants': self.num_of_participants,
-                'total_comments_num': self.total_comments_num
+                    'categories': self.categories,
+                    'title': self.title,
+                    'root_comment_id': self.root_comment_id,
+                    'num_of_participants': self.num_of_participants,
+                    'total_comments_num': self.total_comments_num,
+                    'is_simulation': self.is_simulation,
+                    'configuration': self.configuration
                 }
 
 
