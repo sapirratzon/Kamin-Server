@@ -181,6 +181,7 @@ def get_discussions(is_simulation):
     try:
         is_simulation = (is_simulation == 'True')
         discussions_list = discussion_controller.get_discussions(is_simulation)
+        print(discussions_list)
         return jsonify({"discussions": discussions_list})
     except IOError as e:
         app.logger.exception(e)
