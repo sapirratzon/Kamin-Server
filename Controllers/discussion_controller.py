@@ -64,7 +64,6 @@ class DiscussionController:
                               depth=comment_dict["depth"], is_alert=False, child_comments=[])
         # Call KaminAI
         # KaminAI(comment)
-        self.add_user_discussion_statistics(comment_dict["author"], comment_dict["discussionId"])  ########### delete
         comment.set_id(self.db_management.add_comment(comment))
         response = {"comment": comment}  # , "KaminAIresult": kamin_response
 
