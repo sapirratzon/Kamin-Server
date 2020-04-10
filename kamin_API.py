@@ -1,5 +1,4 @@
 import json
-
 from flask import Flask, abort, request, jsonify, g, url_for, render_template
 from flask_cors import CORS
 from flask_socketio import SocketIO, join_room, emit, send
@@ -180,7 +179,7 @@ def get_discussion(discussion_id):
 @auth.login_required
 def get_discussions(is_simulation):
     try:
-        is_simulation = bool(is_simulation)
+        is_simulation = (is_simulation == 'True')
         discussions_list = discussion_controller.get_discussions(is_simulation)
         return jsonify({"discussions": discussions_list})
     except IOError as e:
@@ -277,3 +276,4 @@ if __name__ == '__main__':
     # app.debug = True
     socket_io.run(app, debug=False)
     print("bla")
+
