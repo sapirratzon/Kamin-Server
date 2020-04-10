@@ -30,7 +30,7 @@ def traverse_add_comments(comment_tree, parent_id, depth, disc_id, dc, uc):
 
 def get_discussion_from_db():
     dc = DiscussionController()
-    id = "5e0795acccadf5b7189464dd"
+    id = "5e8f6289eb0b86b14f8725d3"
     return dc.get_discussion(id)
 
 
@@ -44,10 +44,10 @@ def get_discussions():
     return dc.get_discussions(False)
 
 
-create_discussion_on_db()
+# create_discussion_on_db()
 # discussions = get_discussions()
 
-# discussion = get_discussion_from_db()
+discussion = get_discussion_from_db()
 # json_dict = discussion.to_json_dict()
 # user_id = add_new_user()
 # user = get_user()
