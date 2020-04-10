@@ -11,7 +11,6 @@ from Entities.user import Permission
 # initialization
 app = Flask(__name__)
 CORS(app)
-CORS(app, resources={r"/*": {"origins": "*"}}, send_wildcard=True)
 socket_io = SocketIO(app, cors_allowed_origins='*')
 app.config['SECRET_KEY'] = 'the quick brown fox jumps over the lazy dog'
 ROOMS = {}  # dict to track active rooms
