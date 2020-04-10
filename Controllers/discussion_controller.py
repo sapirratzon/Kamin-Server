@@ -6,7 +6,6 @@ from Entities.new_discussion import Discussion, DiscussionTree
 
 
 class DiscussionController:
-
     db_management = DBManagement()
 
     def create_discussion(self, title, categories, root_comment_dict, configuration):
@@ -54,7 +53,8 @@ class DiscussionController:
                 child_comment_dict = comments[comment_id]
                 child_list.append(self.get_comment_recursive(child_comment_dict, comments))
 
-            comment = CommentNode(id=comment_dict["_id"].binary.hex(), author=comment_dict["author"], text=comment_dict["text"],
+            comment = CommentNode(id=comment_dict["_id"].binary.hex(), author=comment_dict["author"],
+                                  text=comment_dict["text"],
                                   parent_id=comment_dict["parentId"], discussion_id=comment_dict["discussionId"],
                                   extra_data=comment_dict["extra_data"], actions=comment_dict["actions"],
                                   labels=comment_dict["labels"], depth=comment_dict["depth"],
@@ -66,7 +66,6 @@ class DiscussionController:
                 comment = CommentNode(id=comment_dict["_id"].binary.hex(), author=comment_dict["author"],
                                       text=comment_dict["text"], parent_id=comment_dict["parentId"],
                                       discussion_id=comment_dict["discussionId"], extra_data=comment_dict["extra_data"],
-                                      actions=comment_dict["actions"], labels=comment_dict["labels"],
                                       depth=comment_dict["depth"], timestamp=comment_dict["timestamp"],
                                       child_comments=[])
                 return comment
@@ -79,8 +78,7 @@ class DiscussionController:
             comment = CommentNode(id=comment_dict["_id"].binary.hex(), author=comment_dict["author"],
                                   text=comment_dict["text"],
                                   parent_id=comment_dict["parentId"], discussion_id=comment_dict["discussionId"],
-                                  extra_data=comment_dict["extra_data"], actions=comment_dict["actions"],
-                                  labels=comment_dict["labels"], depth=comment_dict["depth"],
+                                  extra_data=comment_dict["extra_data"], depth=comment_dict["depth"],
                                   timestamp=comment_dict["timestamp"], child_comments=child_list)
             return comment
 
@@ -109,5 +107,3 @@ class DiscussionController:
     def get_user_discussion_statistics(self, username, discussion_id):
         user_disc_statistics = self.db_management.get_user_discussion_statistics(username, discussion_id)
         return user_disc_statistics
-
-
