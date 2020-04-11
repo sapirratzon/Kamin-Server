@@ -58,9 +58,10 @@ class DBManagement:
             child_ids = parent_comment["child_comments"]
             child_ids.append(comment.get_id())
             comment_col.update_one({"_id": ObjectId(comment.get_parent_id())}, {"$set": {"child_comments": child_ids}})
+            # user statistics
+            self.update_user_statistics(comment)
 
-        # statistics
-        self.update_user_statistics(comment)
+        # discussion statistics
         self.update_discussion_statistics(comment.get_discussion_id())
 
         return result.inserted_id.binary.hex()
