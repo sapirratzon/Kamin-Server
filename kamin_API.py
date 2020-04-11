@@ -244,11 +244,15 @@ def on_join(data):
     username = user.get_user_name()
     if room not in ROOMS:
         ROOMS[room] = discussion_controller.get_discussion(room)
-    join_room(room)
-    discussion_json_dict = ROOMS[room].to_json_dict()
-    discussion_controller.add_user_discussion_statistics(username, room)
-    socket_io.emit("join room", data=discussion_json_dict, room=request.sid)
-    socket_io.emit("user joined", data=username + " joined the discussion", room=room)
+    if ROOMS[room] is None:
+        ROOMS.pop(room)
+        socket_io.emit("join room", data={"Error - discussionId not exist!"}, room=request.sid)
+    else:
+        join_room(room)
+        discussion_json_dict = ROOMS[room].to_json_dict()
+        discussion_controller.add_user_discussion_statistics(username, room)
+        socket_io.emit("join room", data=discussion_json_dict, room=request.sid)
+        socket_io.emit("user joined", data=username + " joined the discussion", room=room)
 
 
 @socket_io.on("add comment")
