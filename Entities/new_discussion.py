@@ -9,7 +9,9 @@ class Discussion:
         self.num_of_participants = kwargs.get('num_of_participants', 0)
         self.total_comments_num = kwargs.get('total_comments_num', 0)
         self.is_simulation = kwargs.get('is_simulation', False)
-        self.configuration = kwargs.get('configuration', {})
+        self.configuration = kwargs.get('configuration', {"default_config": {"Graph": True, "Alerts": True,
+                                                          "statistics": True, "Config": True, "Self-control": True},
+                                                          "discussion_config": {}})
 
     def get_id(self):
         return self.discussion_id
@@ -54,10 +56,10 @@ class Discussion:
         self.is_simulation = is_simulation
 
     def get_configuration(self):
-        return self.is_simulation
+        return self.configuration
 
-    def set_configuration(self, is_simulation):
-        self.is_simulation = is_simulation
+    def set_configuration(self, configuration):
+        self.configuration = configuration
 
     def to_dict(self):
         return {

@@ -10,6 +10,7 @@ discussion_col = kamin_db["discussion"]
 comment_col = kamin_db["comment"]
 user_col = kamin_db["user"]
 user_discussion_statistics_col = kamin_db["userDiscussionStatistics"]
+user_discussion_configuration_col = kamin_db["userDiscussionConfiguration"]
 
 
 class DBManagement:
@@ -18,6 +19,7 @@ class DBManagement:
     comment_col = kamin_db["comment"]
     user_col = kamin_db["user"]
     user_discussion_statistics_col = kamin_db["userDiscussionStatistics"]
+    user_discussion_configuration_col = kamin_db["userDiscussionConfiguration"]
 
     def create_discussion(self, discussion):
         result = self.discussion_col.insert_one(discussion.to_dict())
@@ -59,14 +61,18 @@ class DBManagement:
             child_ids.append(comment.get_id())
             comment_col.update_one({"_id": ObjectId(comment.get_parent_id())}, {"$set": {"child_comments": child_ids}})
             # user statistics
-            self.update_user_statistics(comment)
+            if comment.get_comment_type() == "comment":
+                self.update_user_statistics(comment)
 
         # discussion statistics
-        self.update_discussion_statistics(comment.get_discussion_id())
+        if comment.get_comment_type() == "comment":
+            self.update_discussion_statistics(comment.get_discussion_id())
 
         return result.inserted_id.binary.hex()
 
     def update_user_statistics(self, comment):
+        if comment.get_comment_type() is not "comment":
+            return
         commented_users = {}
         username = comment.get_author()
         statistics = self.user_discussion_statistics_col.find_one({"username": username,
@@ -161,6 +167,25 @@ class DBManagement:
             self.update_discussion(discussion_id, "num_of_participants", disc_data["num_of_participants"] + 1)
         return
 
+    def add_user_discussion_configuration(self, username, discussion_id, default_config):
+        result = self.get_user_discussion_configuration(username, discussion_id)
+        if result is None:
+            self.user_discussion_configuration_col.insert_one({"username": username,
+                                                               "discussion_id": discussion_id,
+                                                               "config": default_config})
+        return
+
+    def update_user_discussion_configuration(self, username, discussion_id, new_config):
+        configuration = self.user_discussion_configuration_col.find_one({"discussion_id": discussion_id, "username": username})
+        if configuration is not None:
+            self.user_discussion_configuration_col.update_one({"_id": ObjectId(configuration["_id"])}, {"$set": {"config": new_config}})
+
+    def get_user_discussion_configuration(self, username, discussion_id):
+        configuration = self.user_discussion_configuration_col.find_one({"discussion_id": discussion_id, "username": username})
+        if configuration is not None:
+            configuration = {"configuration": configuration["config"]}
+        return configuration
+
     def get_comment(self, comment_id):
         comment = self.comment_col.find_one({"_id": ObjectId(comment_id)})
         return comment
@@ -190,3 +215,9 @@ class DBManagement:
     def change_user_permission(self, user, permission):
         result = self.user_col.update_one({"_id": ObjectId(user.get_user_id())}, {"$set": {"permission": permission}})
         return result.acknowledged
+
+    def get_discussion_moderator(self, discussion_id):
+        discussion = self.discussion_col.find_one({"_id": ObjectId(discussion_id)})
+        root_comment_id = discussion["root_comment_id"]
+        moderator = self.get_author_of_comment(root_comment_id)
+        return moderator

@@ -1,7 +1,7 @@
 import json
 from flask import Flask, abort, request, jsonify, g, url_for, render_template
 from flask_cors import CORS
-from flask_socketio import SocketIO, join_room, emit, send
+from flask_socketio import SocketIO, join_room, emit, send, leave_room
 from flask_httpauth import HTTPBasicAuth
 from Controllers.discussion_controller import DiscussionController
 from Controllers.user_controller import UserController
@@ -14,6 +14,7 @@ CORS(app)
 socket_io = SocketIO(app, cors_allowed_origins='*')
 app.config['SECRET_KEY'] = 'the quick brown fox jumps over the lazy dog'
 ROOMS = {}  # dict to track active rooms
+USERS = {}
 
 # extensions
 auth = HTTPBasicAuth()
@@ -74,6 +75,20 @@ def get_user():
         return jsonify(
             {'username': user.get_user_name(), 'password': user.get_password(), 'first_name': user.get_first_name(),
              'last_name': user.get_last_name(), 'permission': user.get_permission()}), 200
+    except Exception as e:
+        app.logger.exception(e)
+        abort(500, e)
+
+
+@app.route('/api/getActiveDiscussionUsers', methods=['GET'])
+def get_active_discussion_users():
+    try:
+        room = request.args.get('discussion_id')
+        moderator = discussion_controller.get_discussion_moderator(room)
+        active_users = dict(USERS[room]).keys()
+        active_users = active_users.pop(moderator)
+        return jsonify(
+            {'active_users': active_users}), 200
     except Exception as e:
         app.logger.exception(e)
         abort(500, e)
@@ -204,15 +219,16 @@ def create_discussion():
         categories = data["categories"]
         if not data.keys().__contains__("root_comment_dict"):
             raise Exception("root_comment_dict Key is missing, can't create discussion!")
-        root_comment = dict(data["root_comment_dict"])
+        root_comment = data["root_comment_dict"]
         if root_comment is None or len(root_comment) is 0 or root_comment["text"] == "" or root_comment["text"] is None:
             raise Exception("First comment is missing, can't create discussion!")
-        # if not data.keys().__contains__("configuration"):
-        #     raise Exception("configuration is missing, can't create discussion!")
+        if not data.keys().__contains__("configuration"):
+            raise Exception("configuration is missing, can't create discussion!")
         configuration = data["configuration"]
         discussion_tree = discussion_controller.create_discussion(title, categories, root_comment, configuration)
         room = discussion_tree.get_id()
         ROOMS[room] = discussion_tree
+        USERS[room] = {user.get_user_name(): ""}
         return jsonify(
             {'discussion_id': discussion_tree.get_id(), "root_comment_id": discussion_tree.get_root_comment_id()}), 201
     except Exception as e:
@@ -229,6 +245,8 @@ def end_real_time_session(discussion_id):
         if user.get_permission() is not Permission.MODERATOR.value:
             raise Exception("User not permitted to end real-time session!")
         response = discussion_controller.end_real_time_session(discussion_id)
+        USERS.pop(discussion_id)
+        ROOMS.pop(discussion_id)
         return jsonify(response)
     except Exception as e:
         app.logger.exception(e)
@@ -244,15 +262,35 @@ def on_join(data):
     username = user.get_user_name()
     if room not in ROOMS:
         ROOMS[room] = discussion_controller.get_discussion(room)
+        USERS[room] = {}
     if ROOMS[room] is None:
         ROOMS.pop(room)
+        USERS.pop(room)
         socket_io.emit("join room", data={"Error - discussionId not exist!"}, room=request.sid)
     else:
         join_room(room)
-        discussion_json_dict = ROOMS[room].to_json_dict()
+        USERS[room][username] = request.sid
         discussion_controller.add_user_discussion_statistics(username, room)
+        discussion_json_dict = ROOMS[room].to_json_dict()
+        configuration = discussion_controller.get_user_discussion_configuration(username, room)
+        if configuration is None:
+            discussion_controller.add_user_discussion_configuration(username, room,
+                                                                    ROOMS[room].get_configuration()["default_config"])
+        else:
+            discussion_json_dict["discussion"]["configuration"]["default_config"] = configuration
         socket_io.emit("join room", data=discussion_json_dict, room=request.sid)
         socket_io.emit("user joined", data=username + " joined the discussion", room=room)
+
+
+@socket_io.on('leave')
+def on_leave(data):
+    token = data['token']
+    room = data['discussion_id']
+    user = verify_auth_token(token)
+    username = user.get_user_name()
+    leave_room(room)
+    USERS[room].pop(username)
+    # discussion_controller.delete_user_discussion_configuration(username, room, ROOMS[room].get_configuration())
 
 
 @socket_io.on("add comment")
@@ -261,9 +299,49 @@ def add_comment(request_comment):
     comment_dict = json.loads(json_string)
     room = comment_dict['discussionId']
     response = discussion_controller.add_comment(comment_dict)
-    ROOMS[room].add_comment(response["comment"])
     response["comment"] = response["comment"].to_client_dict()
     socket_io.send(response, room=room)
+
+
+@socket_io.on("add alert")
+def add_alert(request_alert):
+    alert_dict = json.loads(request_alert)
+    room = alert_dict["discussionId"]
+    response = discussion_controller.add_alert(alert_dict)
+    extra_data = alert_dict["extra_data"]
+    if extra_data["Recipients_type"] == "parent":
+        parent_user_name = discussion_controller.get_author_of_comment(alert_dict["parentId"])
+        socket_io.emit("new alert", data=response["comment"].to_client_dict(), room=USERS[room][parent_user_name])
+    elif extra_data["Recipients_type"] == "all":
+        socket_io.emit("user joined", data=response["comment"].to_client_dict(), room=room)
+    else:  # TODO: Check for list of users
+        recipients_users = extra_data["users_list"]
+        for user in recipients_users:
+            socket_io.emit("new alert", data=response["comment"].to_client_dict(), room=USERS[room][user])
+
+
+@socket_io.on("change configuration")
+def change_configuration(request_configuration):
+    configuration_dict = json.loads(request_configuration)
+    room = configuration_dict["discussionId"]
+    if configuration_dict["isSimulation"]:
+        discussion_controller.change_configuration(configuration_dict)
+        extra_data = configuration_dict["extra_data"]
+        recipients_type = extra_data["Recipients_type"]
+        users_dict = dict(extra_data["users_list"])
+        users_list = users_dict.keys()
+    else:
+        recipients_type = configuration_dict["Recipients_type"]
+        users_dict = dict(configuration_dict["users_list"])
+        users_list = users_dict.keys()
+    if recipients_type == "all":
+        for user in get_active_discussion_users():
+            discussion_controller.update_user_discussion_configuration(user, room, users_dict["all"])
+        socket_io.emit("new configuration", data=users_dict["all"], room=room)
+    else:
+        for user in users_list:
+            discussion_controller.update_user_discussion_configuration(user, room, users_dict[user])
+            socket_io.emit("new configuration", data=users_dict[user], room=USERS[room][user])
 
 
 @socket_io.on('connect')

@@ -12,7 +12,7 @@ class Comment:
         self.extra_data = kwargs.get('extra_data', {})
         self.depth = kwargs.get('depth', 0)
         self.timestamp = kwargs.get('timestamp', datetime.now().timestamp())
-        self.is_alert = kwargs.get('is_alert', False)
+        self.comment_type = kwargs.get('comment_type', 'comment')
 
     """
     extra_data dict_keys(['file:line', 'subreddit', 'from_kind', 'from', 'title', 'num_comments', 'subreddit_id',
@@ -67,11 +67,11 @@ class Comment:
     def set_extra_data(self, extra_data):
         self.extra_data = extra_data
 
-    def get_is_alert(self):
-        return self.is_alert
+    def get_comment_type(self):
+        return self.comment_type
 
-    def set_is_alert(self, is_alert):
-        self.is_alert = is_alert
+    def set_comment_type(self, comment_type):
+        self.comment_type = comment_type
 
     def get_depth_space(self):
         space = ""
@@ -110,7 +110,7 @@ class CommentNode(Comment):
             "timestamp": self.timestamp,
             "extra_data": self.extra_data,
             "child_comments": self.child_comments,
-            "is_alert": self.is_alert
+            "comment_type": self.comment_type
         }
 
     def to_client_dict(self):
@@ -123,5 +123,5 @@ class CommentNode(Comment):
             "depth": self.depth,
             "timestamp": self.timestamp,
             "extra_data": self.extra_data,
-            "is_alert": self.is_alert
+            "comment_type": self.comment_type
         }
