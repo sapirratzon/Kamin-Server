@@ -291,6 +291,9 @@ def client_disconnect():
 @socket_io.on("next")
 def handle_next(request_data):
     room = request_data['discussionId']
+    if not ROOMS[room].is_simulation:
+        socket_io.emit("error", "Discussion is not a simulation", room=request.sid)
+        return
     if simulation_indexes[room] <= ROOMS[room].total_comments_num:
         simulation_indexes[room] += 1
     socket_io.emit("next", room=room)
@@ -299,6 +302,9 @@ def handle_next(request_data):
 @socket_io.on("back")
 def handle_back(request_data):
     room = request_data['discussionId']
+    if not ROOMS[room].is_simulation:
+        socket_io.emit("error", "Discussion is not a simulation", room=request.sid)
+        return
     if simulation_indexes[room] > 1:
         simulation_indexes[room] -= 1
     socket_io.emit("back", room=room)
@@ -307,6 +313,9 @@ def handle_back(request_data):
 @socket_io.on("all")
 def handle_all(request_data):
     room = request_data['discussionId']
+    if not ROOMS[room].is_simulation:
+        socket_io.emit("error", "Discussion is not a simulation", room=request.sid)
+        return
     simulation_indexes[room] = ROOMS[room].total_comments_num
     socket_io.emit("all", room=room)
 
@@ -314,6 +323,9 @@ def handle_all(request_data):
 @socket_io.on("reset")
 def handle_reset(request_data):
     room = request_data['discussionId']
+    if not ROOMS[room].is_simulation:
+        socket_io.emit("error", "Discussion is not a simulation", room=request.sid)
+        return
     simulation_indexes[room] = 1
     socket_io.emit("reset", room=room)
 
@@ -321,6 +333,9 @@ def handle_reset(request_data):
 @socket_io.on("change_simulation_order")
 def change_order(request_data):
     room = request_data['discussionId']
+    if not ROOMS[room].is_simulation:
+        socket_io.emit("error", "Discussion is not a simulation")
+        return
     if simulation_order[room] == "regular":
         simulation_order[room] = "chronological"
     else:
