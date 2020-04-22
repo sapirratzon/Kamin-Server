@@ -285,7 +285,7 @@ def client_disconnect():
 def handle_next(request_data):
     room = request_data['discussionId']
     simulation_indexes[room] += 1
-    socket_io.emit("next", data={"currentIndex": simulation_indexes[request_data['discussionId']]}, room=room)
+    socket_io.emit("next", room=room)
 
 
 @socket_io.on("back")
@@ -306,7 +306,7 @@ def handle_all(request_data):
 def handle_reset(request_data):
     room = request_data['discussionId']
     simulation_indexes[room] = 0
-    socket_io.emit("back", room=room)
+    socket_io.emit("reset", room=room)
 
 
 if __name__ == '__main__':
