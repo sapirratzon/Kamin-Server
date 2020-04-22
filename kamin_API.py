@@ -1,7 +1,7 @@
 import json
 from flask import Flask, abort, request, jsonify, g, url_for, render_template
 from flask_cors import CORS
-from flask_socketio import SocketIO, join_room, emit, send
+from flask_socketio import SocketIO, join_room, ConnectionRefusedError
 from flask_httpauth import HTTPBasicAuth
 from Controllers.discussion_controller import DiscussionController
 from Controllers.user_controller import UserController
@@ -15,6 +15,7 @@ socket_io = SocketIO(app, cors_allowed_origins='*')
 app.config['SECRET_KEY'] = 'the quick brown fox jumps over the lazy dog'
 ROOMS = {}  # dict to track active rooms
 simulation_indexes = {}
+simulation_order = {}
 # extensions
 auth = HTTPBasicAuth()
 user_controller = UserController()
@@ -241,6 +242,8 @@ def on_join(data):
     token = data['token']
     room = data['discussion_id']
     user = verify_auth_token(token)
+    if not user:
+        raise ConnectionRefusedError('unauthorized!')
     username = user.get_user_name()
     if room not in ROOMS:
         ROOMS[room] = discussion_controller.get_discussion(room)
@@ -254,8 +257,11 @@ def on_join(data):
         data = {"discussionDict": discussion_json_dict}
         if ROOMS[room].is_simulation:
             if room not in simulation_indexes:
+                simulation_order[room] = "regular"
                 simulation_indexes[room] = 1
             data["currentIndex"] = simulation_indexes[room]
+            data["simulationOrder"] = simulation_order[room]
+
         socket_io.emit("join room", data=data, room=request.sid)
         socket_io.emit("user joined", data=username + " joined the discussion", room=room)
 
@@ -309,6 +315,16 @@ def handle_reset(request_data):
     room = request_data['discussionId']
     simulation_indexes[room] = 1
     socket_io.emit("reset", room=room)
+
+
+@socket_io.on("change_simulation_order")
+def change_order(request_data):
+    room = request_data['discussionId']
+    if simulation_order[room] == "regular":
+        simulation_order[room] = "chronological"
+    else:
+        simulation_order[room] = "regular"
+    socket_io.emit("change_simulation_order", room=room)
 
 
 if __name__ == '__main__':
