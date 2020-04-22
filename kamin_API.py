@@ -284,14 +284,16 @@ def client_disconnect():
 @socket_io.on("next")
 def handle_next(request_data):
     room = request_data['discussionId']
-    simulation_indexes[room] += 1
+    if simulation_indexes[room] <= ROOMS[room].total_comments_num:
+        simulation_indexes[room] += 1
     socket_io.emit("next", room=room)
 
 
 @socket_io.on("back")
 def handle_back(request_data):
     room = request_data['discussionId']
-    simulation_indexes[room] -= 1
+    if simulation_indexes[room] > 1:
+        simulation_indexes[room] -= 1
     socket_io.emit("back", room=room)
 
 
