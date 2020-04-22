@@ -221,3 +221,4 @@ class DBManagement:
         root_comment_id = discussion["root_comment_id"]
         moderator = self.get_author_of_comment(root_comment_id)
         return moderator
+
