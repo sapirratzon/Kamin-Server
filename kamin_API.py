@@ -222,19 +222,15 @@ def create_discussion():
         return
 
 
-@app.route('/api/endRealTimeSession/<string:discussion_id>', methods=['GET'])
-@auth.login_required
-def end_real_time_session(discussion_id):
-    try:
-        user = g.user
-        if user.get_permission() is not Permission.MODERATOR.value:
-            raise Exception("User not permitted to end real-time session!")
-        response = discussion_controller.end_real_time_session(discussion_id)
-        return jsonify(response)
-    except Exception as e:
-        app.logger.exception(e)
-        abort(500, e)
-        return
+@socket_io.on('end_session')
+def end_real_time_session(data):
+    token = data['token']
+    discussion_id = data['discussionId']
+    user = verify_auth_token(token)
+    if user.get_permission() is not Permission.MODERATOR.value:
+        socket_io.emit("error", "User not permitted to end real-time session!")
+    discussion_controller.end_real_time_session(discussion_id)
+    socket_io.emit("end_session")
 
 
 @socket_io.on('join')
