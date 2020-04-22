@@ -293,13 +293,12 @@ def on_join(data):
 
 @socket_io.on('leave')
 def on_leave(data):
-    token = data['token']
-    room = data['discussion_id']
-    user = verify_auth_token(token)
-    username = user.get_user_name()
+    data = json.loads(data)
+    room = data['discussionId']
+    username = data['username']
     leave_room(room)
     USERS[room].pop(username)
-    # discussion_controller.delete_user_discussion_configuration(username, room, ROOMS[room].get_configuration())
+    socket_io.emit("user leave", data=username + " leaved the discussion", room=room)
 
 
 @socket_io.on("add comment")
