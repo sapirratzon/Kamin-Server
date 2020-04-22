@@ -254,7 +254,7 @@ def on_join(data):
         data = {"discussionDict": discussion_json_dict}
         if ROOMS[room].is_simulation:
             if room not in simulation_indexes:
-                simulation_indexes[room] = 0
+                simulation_indexes[room] = 1
             data["currentIndex"] = simulation_indexes[room]
         socket_io.emit("join room", data=data, room=request.sid)
         socket_io.emit("user joined", data=username + " joined the discussion", room=room)
@@ -305,7 +305,7 @@ def handle_all(request_data):
 @socket_io.on("reset")
 def handle_reset(request_data):
     room = request_data['discussionId']
-    simulation_indexes[room] = 0
+    simulation_indexes[room] = 1
     socket_io.emit("reset", room=room)
 
 
