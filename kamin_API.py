@@ -250,7 +250,7 @@ def on_join(data):
         ROOMS[room] = discussion_controller.get_discussion(room)
     if ROOMS[room] is None:
         ROOMS.pop(room)
-        socket_io.emit("join room", data={"Error - discussionId not exist!"}, room=request.sid)
+        socket_io.emit("error", data="join Error - discussionId not exist!", room=request.sid)
     else:
         join_room(room)
         discussion_json_dict = ROOMS[room].to_json_dict()
@@ -292,7 +292,7 @@ def client_disconnect():
 def handle_next(request_data):
     room = request_data['discussionId']
     if not ROOMS[room].is_simulation:
-        socket_io.emit("error", "Discussion is not a simulation", room=request.sid)
+        socket_io.emit("error", data="next failed - Discussion is not a simulation", room=request.sid)
         return
     if simulation_indexes[room] <= ROOMS[room].total_comments_num:
         simulation_indexes[room] += 1
@@ -303,7 +303,7 @@ def handle_next(request_data):
 def handle_back(request_data):
     room = request_data['discussionId']
     if not ROOMS[room].is_simulation:
-        socket_io.emit("error", "Discussion is not a simulation", room=request.sid)
+        socket_io.emit("error", data="back failed - Discussion is not a simulation", room=request.sid)
         return
     if simulation_indexes[room] > 1:
         simulation_indexes[room] -= 1
@@ -314,7 +314,7 @@ def handle_back(request_data):
 def handle_all(request_data):
     room = request_data['discussionId']
     if not ROOMS[room].is_simulation:
-        socket_io.emit("error", "Discussion is not a simulation", room=request.sid)
+        socket_io.emit("error", data="all failed - Discussion is not a simulation", room=request.sid)
         return
     simulation_indexes[room] = ROOMS[room].total_comments_num
     socket_io.emit("all", room=room)
@@ -324,7 +324,7 @@ def handle_all(request_data):
 def handle_reset(request_data):
     room = request_data['discussionId']
     if not ROOMS[room].is_simulation:
-        socket_io.emit("error", "Discussion is not a simulation", room=request.sid)
+        socket_io.emit("error", data="reset failed - Discussion is not a simulation", room=request.sid)
         return
     simulation_indexes[room] = 1
     socket_io.emit("reset", room=room)
@@ -334,7 +334,7 @@ def handle_reset(request_data):
 def change_order(request_data):
     room = request_data['discussionId']
     if not ROOMS[room].is_simulation:
-        socket_io.emit("error", "Discussion is not a simulation")
+        socket_io.emit("error", data="change sim order failed - Discussion is not a simulation")
         return
     if simulation_order[room] == "regular":
         simulation_order[room] = "chronological"
