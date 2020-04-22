@@ -324,7 +324,7 @@ def add_alert(request_alert):
 def change_configuration(request_configuration):
     configuration_dict = json.loads(request_configuration)
     room = configuration_dict["discussionId"]
-    if configuration_dict["isSimulation"]:
+    if ROOMS[room].is_simulation:
         discussion_controller.change_configuration(configuration_dict)
         extra_data = configuration_dict["extra_data"]
         recipients_type = extra_data["Recipients_type"]
@@ -339,7 +339,7 @@ def change_configuration(request_configuration):
             discussion_controller.update_user_discussion_configuration(user, room, users_dict["all"])
         socket_io.emit("new configuration", data=users_dict["all"], room=room)
     else:
-        for user in users_list:
+        for user in users_list:  # TODO: Check for list of users
             discussion_controller.update_user_discussion_configuration(user, room, users_dict[user])
             socket_io.emit("new configuration", data=users_dict[user], room=USERS[room][user])
 

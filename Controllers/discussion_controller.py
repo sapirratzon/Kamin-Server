@@ -116,3 +116,4 @@ class DiscussionController:
 
     def get_discussion_moderator(self, discussion_id):
         return self.db_management.get_discussion_moderator(discussion_id)
+
