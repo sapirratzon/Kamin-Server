@@ -80,13 +80,12 @@ def get_user():
         abort(500, e)
 
 
-@app.route('/api/getActiveDiscussionUsers', methods=['GET'])
-def get_active_discussion_users():
+@app.route('/api/getActiveDiscussionUsers/<string:discussion_id>', methods=['GET'])
+def get_active_discussion_users(discussion_id):
     try:
-        room = request.args.get('discussion_id')
-        moderator = discussion_controller.get_discussion_moderator(room)
-        active_users = dict(USERS[room]).keys()
-        active_users = active_users.pop(moderator)
+        moderator = discussion_controller.get_discussion_moderator(discussion_id)
+        active_users = list((USERS[discussion_id]).keys())
+        active_users.remove(moderator)
         return jsonify(
             {'active_users': active_users}), 200
     except Exception as e:
