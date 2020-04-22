@@ -14,7 +14,7 @@ CORS(app)
 socket_io = SocketIO(app, cors_allowed_origins='*')
 app.config['SECRET_KEY'] = 'the quick brown fox jumps over the lazy dog'
 ROOMS = {}  # dict to track active rooms
-
+simulation_indexes = {}
 # extensions
 auth = HTTPBasicAuth()
 user_controller = UserController()
@@ -251,7 +251,12 @@ def on_join(data):
         join_room(room)
         discussion_json_dict = ROOMS[room].to_json_dict()
         discussion_controller.add_user_discussion_statistics(username, room)
-        socket_io.emit("join room", data=discussion_json_dict, room=request.sid)
+        data = {"discussionDict": discussion_json_dict}
+        if ROOMS[room].is_simulation:
+            if room not in simulation_indexes:
+                simulation_indexes[room] = 0
+            data["currentIndex"] = simulation_indexes[room]
+        socket_io.emit("join room", data=data, room=request.sid)
         socket_io.emit("user joined", data=username + " joined the discussion", room=room)
 
 
@@ -276,8 +281,43 @@ def client_disconnect():
     print("client disconnected")
 
 
+@socket_io.on("next")
+def handle_next(request_data):
+    json_string = request_data
+    data_dict = json.loads(json_string)
+    simulation_indexes[data_dict['discussionId']] += 1
+    room = data_dict['discussionId']
+    socket_io.emit("next", data={"currentIndex": simulation_indexes[data_dict['discussionId']]}, room=room)
+
+
+@socket_io.on("back")
+def handle_back(request_data):
+    json_string = request_data
+    data_dict = json.loads(json_string)
+    simulation_indexes[data_dict['discussionId']] -= 1
+    room = data_dict['discussionId']
+    socket_io.emit("back", room=room)
+
+
+@socket_io.on("all")
+def handle_all(request_data):
+    json_string = request_data
+    data_dict = json.loads(json_string)
+    room = data_dict['discussionId']
+    simulation_indexes[room] = ROOMS[room].total_comments_num
+    socket_io.emit("all", room=room)
+
+
+@socket_io.on("reset")
+def handle_reset(request_data):
+    json_string = request_data
+    data_dict = json.loads(json_string)
+    simulation_indexes[data_dict['discussionId']] = 0
+    room = data_dict['discussionId']
+    socket_io.emit("back", room=room)
+
+
 if __name__ == '__main__':
     # app.debug = True
     socket_io.run(app, debug=False)
     print("bla")
-
