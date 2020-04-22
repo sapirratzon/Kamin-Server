@@ -283,37 +283,29 @@ def client_disconnect():
 
 @socket_io.on("next")
 def handle_next(request_data):
-    json_string = request_data
-    data_dict = json.loads(json_string)
-    simulation_indexes[data_dict['discussionId']] += 1
-    room = data_dict['discussionId']
-    socket_io.emit("next", data={"currentIndex": simulation_indexes[data_dict['discussionId']]}, room=room)
+    room = request_data['discussionId']
+    simulation_indexes[room] += 1
+    socket_io.emit("next", data={"currentIndex": simulation_indexes[request_data['discussionId']]}, room=room)
 
 
 @socket_io.on("back")
 def handle_back(request_data):
-    json_string = request_data
-    data_dict = json.loads(json_string)
-    simulation_indexes[data_dict['discussionId']] -= 1
-    room = data_dict['discussionId']
+    room = request_data['discussionId']
+    simulation_indexes[room] -= 1
     socket_io.emit("back", room=room)
 
 
 @socket_io.on("all")
 def handle_all(request_data):
-    json_string = request_data
-    data_dict = json.loads(json_string)
-    room = data_dict['discussionId']
+    room = request_data['discussionId']
     simulation_indexes[room] = ROOMS[room].total_comments_num
     socket_io.emit("all", room=room)
 
 
 @socket_io.on("reset")
 def handle_reset(request_data):
-    json_string = request_data
-    data_dict = json.loads(json_string)
-    simulation_indexes[data_dict['discussionId']] = 0
-    room = data_dict['discussionId']
+    room = request_data['discussionId']
+    simulation_indexes[room] = 0
     socket_io.emit("back", room=room)
 
 
