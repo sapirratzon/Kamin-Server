@@ -208,8 +208,8 @@ def create_discussion():
         root_comment = dict(data["root_comment_dict"])
         if root_comment is None or len(root_comment) is 0 or root_comment["text"] == "" or root_comment["text"] is None:
             raise Exception("First comment is missing, can't create discussion!")
-        # if not data.keys().__contains__("configuration"):
-        #     raise Exception("configuration is missing, can't create discussion!")
+        if not data.keys().__contains__("configuration"):
+            raise Exception("configuration is missing, can't create discussion!")
         configuration = data["configuration"]
         discussion_tree = discussion_controller.create_discussion(title, categories, root_comment, configuration)
         room = discussion_tree.get_id()
