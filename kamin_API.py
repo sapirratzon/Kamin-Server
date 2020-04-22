@@ -243,7 +243,8 @@ def on_join(data):
     room = data['discussion_id']
     user = verify_auth_token(token)
     if not user:
-        raise ConnectionRefusedError('unauthorized!')
+        socket_io.emit("unauthorized", room=request.sid)
+        return
     username = user.get_user_name()
     if room not in ROOMS:
         ROOMS[room] = discussion_controller.get_discussion(room)
