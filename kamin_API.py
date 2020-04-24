@@ -88,7 +88,7 @@ def get_active_discussion_users():
         room = request.args.get('discussion_id')
         moderator = discussion_controller.get_discussion_moderator(room)
         active_users = dict(USERS[room]).keys()
-        active_users = active_users.pop(moderator)
+        active_users.pop(moderator)
         return jsonify(
             {'active_users': active_users}), 200
     except Exception as e:
