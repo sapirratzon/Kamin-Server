@@ -100,14 +100,15 @@ def get_active_discussion_users(discussion_id):
 @app.route('/api/getActiveUsersConfigurations/<string:discussion_id>', methods=['GET'])
 def get_active_users_configurations(discussion_id):
     try:
+        config = {}
         moderator = discussion_controller.get_discussion_moderator(discussion_id)
         users_config = discussion_controller.get_all_users_discussion_configurations(discussion_id)
         if users_config.__contains__(moderator):
             users_config.pop(moderator)
         for user in users_config:
-            if not USERS.__contains__(user):
-                users_config.pop(user)
-        return jsonify({users_config}), 200
+            if USERS[discussion_id].__contains__(user):
+                config[user] = users_config[user]["configuration"]
+        return jsonify({"config": config}), 200
     except Exception as e:
         app.logger.exception(e)
         abort(500, e)
