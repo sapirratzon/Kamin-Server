@@ -352,7 +352,7 @@ def change_configuration(request_configuration):
     if not ROOMS[room].is_simulation:
         discussion_controller.change_configuration(configuration_dict)
     extra_data = configuration_dict["extra_data"]
-    recipients_type = extra_data["Recipients_type"]
+    recipients_type = extra_data["recipients_type"]
     users_dict = dict(extra_data["users_list"])
     users_list = users_dict.keys()
     if recipients_type == "all":
