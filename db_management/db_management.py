@@ -178,6 +178,9 @@ class DBManagement:
     def update_user_discussion_configuration(self, username, discussion_id, new_config):
         configuration = self.user_discussion_configuration_col.find_one({"discussion_id": discussion_id, "username": username})
         if configuration is not None:
+            configuration = dict(configuration)
+            for config in new_config:
+                configuration[config] = new_config[config]
             self.user_discussion_configuration_col.update_one({"_id": ObjectId(configuration["_id"])}, {"$set": {"config": new_config}})
 
     def get_user_discussion_configuration(self, username, discussion_id):
@@ -185,6 +188,13 @@ class DBManagement:
         if configuration is not None:
             configuration = {"configuration": configuration["config"]}
         return configuration
+
+    def get_all_users_discussion_configurations(self, discussion_id):
+        users_configuration = {}
+        configurations = self.user_discussion_configuration_col.find({"discussion_id": discussion_id})
+        for config in configurations:
+            users_configuration[config["username"]] = config["config"]
+        return users_configuration
 
     def get_comment(self, comment_id):
         comment = self.comment_col.find_one({"_id": ObjectId(comment_id)})
@@ -221,4 +231,7 @@ class DBManagement:
         root_comment_id = discussion["root_comment_id"]
         moderator = self.get_author_of_comment(root_comment_id)
         return moderator
+
+    def delete_discussion_configurations(self, discussion_id):
+        self.user_discussion_configuration_col.delete_many({"discussionId": discussion_id})
 
