@@ -43,7 +43,7 @@ class DiscussionController:
                                   text=comment_dict["text"], parent_id=comment_dict["parentId"],
                                   discussion_id=comment_dict["discussionId"], extra_data=comment_dict["extra_data"],
                                   depth=comment_dict["depth"], timestamp=comment_dict["timestamp"],
-                                  child_comments=[], is_alert=comment_dict["is_alert"])
+                                  child_comments=[], comment_type=comment_dict["comment_type"])
             return comment
 
         child_list = []
@@ -55,13 +55,13 @@ class DiscussionController:
                               text=comment_dict["text"], parent_id=comment_dict["parentId"],
                               discussion_id=comment_dict["discussionId"], extra_data=comment_dict["extra_data"],
                               depth=comment_dict["depth"], timestamp=comment_dict["timestamp"],
-                              child_comments=child_list, is_alert=comment_dict["is_alert"])
+                              child_comments=child_list, comment_type=comment_dict["comment_type"])
         return comment
 
     def add_comment(self, comment_dict):
         comment = CommentNode(author=comment_dict["author"], text=comment_dict["text"],
                               parent_id=comment_dict["parentId"], discussion_id=comment_dict["discussionId"],
-                              depth=comment_dict["depth"], is_alert=False, child_comments=[])
+                              depth=comment_dict["depth"], comment_type="comment", child_comments=[])
         # Call KaminAI
         # KaminAI(comment)
         comment.set_id(self.db_management.add_comment(comment))
@@ -69,8 +69,40 @@ class DiscussionController:
 
         return response
 
+    def add_alert(self, alert_dict):
+        comment = CommentNode(author=alert_dict["author"], text=alert_dict["text"],
+                              parent_id=alert_dict["parentId"], discussion_id=alert_dict["discussionId"],
+                              depth=alert_dict["depth"], comment_type="alert", child_comments=[],
+                              extra_data=alert_dict["extra_data"])
+        comment.set_id(self.db_management.add_comment(comment))
+        response = {"comment": comment}
+
+        return response
+
+    def change_configuration(self, configuration_dict):
+        comment = CommentNode(author=configuration_dict["author"], text=configuration_dict["text"],
+                              parent_id=configuration_dict["parentId"], discussion_id=configuration_dict["discussionId"],
+                              depth=configuration_dict["depth"], comment_type="configuration", child_comments=[],
+                              extra_data=configuration_dict["extra_data"])
+        comment.set_id(self.db_management.add_comment(comment))
+        response = {"comment": comment}
+        return response
+
+    def add_user_discussion_configuration(self, username, discussion_id, default_config):
+        self.db_management.add_user_discussion_configuration(username, discussion_id, default_config)
+
+    def update_user_discussion_configuration(self, username, discussion_id, new_config):
+        self.db_management.update_user_discussion_configuration(username, discussion_id, new_config)
+
+    def get_user_discussion_configuration(self, username, discussion_id):
+        return self.db_management.get_user_discussion_configuration(username, discussion_id)
+
+    def get_all_users_discussion_configurations(self, discussion_id):
+        return self.db_management.get_all_users_discussion_configurations(discussion_id)
+
     def end_real_time_session(self, discussion_id):
         self.db_management.update_discussion(discussion_id, "is_simulation", True)
+        self.db_management.delete_discussion_configurations(discussion_id)
 
     def add_user_discussion_statistics(self, username, discussion_id):
         self.db_management.add_user_discussion_statistics(username, discussion_id)
@@ -82,3 +114,10 @@ class DiscussionController:
     def get_user_discussion_statistics(self, username, discussion_id):
         user_disc_statistics = self.db_management.get_user_discussion_statistics(username, discussion_id)
         return user_disc_statistics
+
+    def get_author_of_comment(self, comment_id):
+        return self.db_management.get_author_of_comment(comment_id)
+
+    def get_discussion_moderator(self, discussion_id):
+        return self.db_management.get_discussion_moderator(discussion_id)
+
