@@ -107,7 +107,7 @@ def get_active_users_configurations(discussion_id):
             users_config.pop(moderator)
         for user in users_config:
             if USERS[discussion_id].__contains__(user):
-                config[user] = users_config[user]["configuration"]
+                config[user] = users_config[user]
         return jsonify({"config": config}), 200
     except Exception as e:
         app.logger.exception(e)
