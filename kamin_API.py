@@ -81,16 +81,24 @@ def get_user():
         app.logger.exception(e)
         abort(500, e)
 
+def get_active_users(discussion_id):
+    active_users = []
+    if len(USERS) > 0:
+        active_users = list(dict(USERS[discussion_id]).keys())
+    return active_users
+
+def get_active_users_without_moderator(discussion_id):
+    active_users = get_active_users(discussion_id)
+    moderator = discussion_controller.get_discussion_moderator(discussion_id)
+    if active_users.__contains__(moderator):
+        active_users.remove(moderator)
+    return active_users
+
 
 @app.route('/api/getActiveDiscussionUsers/<string:discussion_id>', methods=['GET'])
 def get_active_discussion_users(discussion_id):
     try:
-        active_users = []
-        moderator = discussion_controller.get_discussion_moderator(discussion_id)
-        if len(USERS) > 0:
-            active_users = list(dict(USERS[discussion_id]).keys())
-            if active_users.__contains__(moderator):
-                active_users.remove(moderator)
+        active_users = get_active_users_without_moderator(discussion_id)
         return jsonify({'active_users': active_users}), 200
     except Exception as e:
         app.logger.exception(e)
@@ -357,7 +365,7 @@ def change_configuration(request_configuration):
     users_dict = dict(extra_data["users_list"])
     users_list = users_dict.keys()
     if recipients_type == "all":
-        for user in get_active_discussion_users(room):
+        for user in get_active_users_without_moderator(room):
             discussion_controller.update_user_discussion_configuration(user, room, users_dict["all"])
         socket_io.emit("new configuration", data=users_dict["all"], room=room)
     else:
@@ -435,4 +443,3 @@ if __name__ == '__main__':
     # app.debug = True
     socket_io.run(app, debug=False)
     print("bla")
-
