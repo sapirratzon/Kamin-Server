@@ -343,7 +343,7 @@ def change_configuration(request_configuration):
         users_dict = dict(configuration_dict["users_list"])
         users_list = users_dict.keys()
     if recipients_type == "all":
-        for user in get_active_discussion_users():
+        for user in get_active_discussion_users(room):
             discussion_controller.update_user_discussion_configuration(user, room, users_dict["all"])
         socket_io.emit("new configuration", data=users_dict["all"], room=room)
     else:
