@@ -12,7 +12,7 @@ from Entities.user import Permission
 app = Flask(__name__)
 CORS(app)
 socket_io = SocketIO(app, cors_allowed_origins='*')
-app.config['SECRET_KEY'] = 'the quick brown fox jumps over the lazy dog'
+app.vis_config['SECRET_KEY'] = 'the quick brown fox jumps over the lazy dog'
 ROOMS = {}  # dict to track active rooms
 simulation_indexes = {}
 simulation_order = {}
@@ -313,7 +313,7 @@ def on_join(data):
         data["simulationOrder"] = simulation_order[room]
     user_config = discussion_controller.get_user_discussion_configuration(username, room)
     if user_config is None:
-        user_config = ROOMS[room].get_configuration()["default_config"]
+        user_config = ROOMS[room].get_configuration()["vis_config"]
         discussion_controller.add_user_discussion_configuration(username, room, user_config)
     data["visualConfig"] = user_config
     socket_io.emit("join room", data=data, room=request.sid)

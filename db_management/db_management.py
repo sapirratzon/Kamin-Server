@@ -167,12 +167,12 @@ class DBManagement:
             self.update_discussion(discussion_id, "num_of_participants", disc_data["num_of_participants"] + 1)
         return
 
-    def add_user_discussion_configuration(self, username, discussion_id, default_config):
+    def add_user_discussion_configuration(self, username, discussion_id, vis_config):
         result = self.get_user_discussion_configuration(username, discussion_id)
         if result is None:
             self.user_discussion_configuration_col.insert_one({"username": username,
                                                                "discussion_id": discussion_id,
-                                                               "config": default_config})
+                                                               "config": vis_config})
         return
 
     def update_user_discussion_configuration(self, username, discussion_id, new_config):

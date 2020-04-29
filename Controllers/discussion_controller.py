@@ -88,8 +88,8 @@ class DiscussionController:
         response = {"comment": comment}
         return response
 
-    def add_user_discussion_configuration(self, username, discussion_id, default_config):
-        self.db_management.add_user_discussion_configuration(username, discussion_id, default_config)
+    def add_user_discussion_configuration(self, username, discussion_id, vis_config):
+        self.db_management.add_user_discussion_configuration(username, discussion_id, vis_config)
 
     def update_user_discussion_configuration(self, username, discussion_id, new_config):
         self.db_management.update_user_discussion_configuration(username, discussion_id, new_config)
