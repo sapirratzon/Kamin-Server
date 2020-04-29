@@ -81,11 +81,13 @@ def get_user():
         app.logger.exception(e)
         abort(500, e)
 
+
 def get_active_users(discussion_id):
     active_users = []
     if len(USERS) > 0:
         active_users = list(dict(USERS[discussion_id]).keys())
     return active_users
+
 
 def get_active_users_without_moderator(discussion_id):
     active_users = get_active_users(discussion_id)
@@ -115,7 +117,7 @@ def get_active_users_configurations(discussion_id):
             users_config.pop(moderator)
         for user in users_config:
             if USERS[discussion_id].__contains__(user):
-            # TODO: error in this line no configuration for users_config[user]
+                # TODO: error in this line no configuration for users_config[user]
                 config[user] = users_config[user]
         return jsonify({"config": config}), 200
     except Exception as e:
@@ -235,7 +237,8 @@ def get_discussions(is_simulation):
 def create_discussion():
     try:
         user = g.user
-        if user.get_permission() is not Permission.MODERATOR.value:
+        if (user.get_permission() is not Permission.MODERATOR.value) and (
+                user.get_permission() is not Permission.ROOT.value):
             raise Exception("User not permitted to create discussion!")
         data = dict(request.json)
         if not data.keys().__contains__("title") or data["title"] is None:
@@ -299,7 +302,7 @@ def on_join(data):
     USERS[room][username] = request.sid
     discussion_controller.add_user_discussion_statistics(username, room)
     discussion_json_dict = ROOMS[room].to_json_dict()
-    #TODO: why another call to the same func?
+    # TODO: why another call to the same func?
     discussion_controller.add_user_discussion_statistics(username, room)
     data = {"discussionDict": discussion_json_dict}
     if ROOMS[room].is_simulation:
@@ -310,7 +313,7 @@ def on_join(data):
         data["simulationOrder"] = simulation_order[room]
     user_config = discussion_controller.get_user_discussion_configuration(username, room)
     if user_config is None:
-        user_config =  ROOMS[room].get_configuration()["default_config"]
+        user_config = ROOMS[room].get_configuration()["default_config"]
         discussion_controller.add_user_discussion_configuration(username, room, user_config)
     data["visualConfig"] = user_config
     socket_io.emit("join room", data=data, room=request.sid)
