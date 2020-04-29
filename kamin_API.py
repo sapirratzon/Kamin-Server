@@ -347,10 +347,10 @@ def add_alert(request_alert):
     room = alert_dict["discussionId"]
     response = discussion_controller.add_alert(alert_dict)
     extra_data = alert_dict["extra_data"]
-    if extra_data["Recipients_type"] == "parent":
+    if extra_data["recipients_type"] == "parent":
         parent_user_name = discussion_controller.get_author_of_comment(alert_dict["parentId"])
         socket_io.emit("new alert", data=response["comment"].to_client_dict(), room=USERS[room][parent_user_name])
-    elif extra_data["Recipients_type"] == "all":
+    elif extra_data["recipients_type"] == "all":
         socket_io.emit("user joined", data=response["comment"].to_client_dict(), room=room)
     else:  # TODO: Check for list of users
         recipients_users = extra_data["users_list"]
