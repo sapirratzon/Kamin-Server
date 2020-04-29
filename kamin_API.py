@@ -82,15 +82,25 @@ def get_user():
         abort(500, e)
 
 
+def get_active_users(discussion_id):
+    active_users = []
+    if len(USERS) > 0:
+        active_users = list(dict(USERS[discussion_id]).keys())
+    return active_users
+
+
+def get_active_users_without_moderator(discussion_id):
+    active_users = get_active_users(discussion_id)
+    moderator = discussion_controller.get_discussion_moderator(discussion_id)
+    if active_users.__contains__(moderator):
+        active_users.remove(moderator)
+    return active_users
+
+
 @app.route('/api/getActiveDiscussionUsers/<string:discussion_id>', methods=['GET'])
 def get_active_discussion_users(discussion_id):
     try:
-        active_users = []
-        moderator = discussion_controller.get_discussion_moderator(discussion_id)
-        if len(USERS) > 0:
-            active_users = list(dict(USERS[discussion_id]).keys())
-            if active_users.__contains__(moderator):
-                active_users.remove(moderator)
+        active_users = get_active_users_without_moderator(discussion_id)
         return jsonify({'active_users': active_users}), 200
     except Exception as e:
         app.logger.exception(e)
@@ -107,7 +117,8 @@ def get_active_users_configurations(discussion_id):
             users_config.pop(moderator)
         for user in users_config:
             if USERS[discussion_id].__contains__(user):
-                config[user] = users_config[user]["configuration"]
+                # TODO: error in this line no configuration for users_config[user]
+                config[user] = users_config[user]
         return jsonify({"config": config}), 200
     except Exception as e:
         app.logger.exception(e)
@@ -226,7 +237,8 @@ def get_discussions(is_simulation):
 def create_discussion():
     try:
         user = g.user
-        if user.get_permission() is not Permission.MODERATOR.value:
+        if (user.get_permission() is not Permission.MODERATOR.value) and (
+                user.get_permission() is not Permission.ROOT.value):
             raise Exception("User not permitted to create discussion!")
         data = dict(request.json)
         if not data.keys().__contains__("title") or data["title"] is None:
@@ -290,6 +302,7 @@ def on_join(data):
     USERS[room][username] = request.sid
     discussion_controller.add_user_discussion_statistics(username, room)
     discussion_json_dict = ROOMS[room].to_json_dict()
+    # TODO: why another call to the same func?
     discussion_controller.add_user_discussion_statistics(username, room)
     data = {"discussionDict": discussion_json_dict}
     if ROOMS[room].is_simulation:
@@ -298,13 +311,12 @@ def on_join(data):
             simulation_indexes[room] = 1
         data["currentIndex"] = simulation_indexes[room]
         data["simulationOrder"] = simulation_order[room]
-    configuration = discussion_controller.get_user_discussion_configuration(username, room)
-    if configuration is None:
-        discussion_controller.add_user_discussion_configuration(username, room,
-                                                                ROOMS[room].get_configuration()["default_config"])
-    else:
-        discussion_json_dict["discussion"]["configuration"]["default_config"] = configuration
-    socket_io.emit("join room", data=discussion_json_dict, room=request.sid)
+    user_config = discussion_controller.get_user_discussion_configuration(username, room)
+    if user_config is None:
+        user_config = ROOMS[room].get_configuration()["vis_config"]
+        discussion_controller.add_user_discussion_configuration(username, room, user_config)
+    data["visualConfig"] = user_config
+    socket_io.emit("join room", data=data, room=request.sid)
     socket_io.emit("user joined", data=username + " joined the discussion", room=room)
 
 
@@ -335,10 +347,10 @@ def add_alert(request_alert):
     room = alert_dict["discussionId"]
     response = discussion_controller.add_alert(alert_dict)
     extra_data = alert_dict["extra_data"]
-    if extra_data["Recipients_type"] == "parent":
+    if extra_data["recipients_type"] == "parent":
         parent_user_name = discussion_controller.get_author_of_comment(alert_dict["parentId"])
         socket_io.emit("new alert", data=response["comment"].to_client_dict(), room=USERS[room][parent_user_name])
-    elif extra_data["Recipients_type"] == "all":
+    elif extra_data["recipients_type"] == "all":
         socket_io.emit("user joined", data=response["comment"].to_client_dict(), room=room)
     else:  # TODO: Check for list of users
         recipients_users = extra_data["users_list"]
@@ -357,7 +369,7 @@ def change_configuration(request_configuration):
     users_dict = dict(extra_data["users_list"])
     users_list = users_dict.keys()
     if recipients_type == "all":
-        for user in get_active_discussion_users():
+        for user in get_active_users_without_moderator(room):
             discussion_controller.update_user_discussion_configuration(user, room, users_dict["all"])
         socket_io.emit("new configuration", data=users_dict["all"], room=room)
     else:
@@ -435,4 +447,3 @@ if __name__ == '__main__':
     # app.debug = True
     socket_io.run(app, debug=False,host='0.0.0.0')
     print("bla")
-
