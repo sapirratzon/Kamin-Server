@@ -97,8 +97,12 @@ class DiscussionController:
     def get_user_discussion_configuration(self, username, discussion_id):
         return self.db_management.get_user_discussion_configuration(username, discussion_id)
 
+    def get_all_users_discussion_configurations(self, discussion_id):
+        return self.db_management.get_all_users_discussion_configurations(discussion_id)
+
     def end_real_time_session(self, discussion_id):
         self.db_management.update_discussion(discussion_id, "is_simulation", True)
+        self.db_management.delete_discussion_configurations(discussion_id)
 
     def add_user_discussion_statistics(self, username, discussion_id):
         self.db_management.add_user_discussion_statistics(username, discussion_id)
