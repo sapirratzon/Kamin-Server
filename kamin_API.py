@@ -12,7 +12,7 @@ from Entities.user import Permission
 app = Flask(__name__)
 CORS(app)
 socket_io = SocketIO(app, cors_allowed_origins='*')
-app.vis_config['SECRET_KEY'] = 'the quick brown fox jumps over the lazy dog'
+app.default_config['SECRET_KEY'] = 'the quick brown fox jumps over the lazy dog'
 ROOMS = {}  # dict to track active rooms
 simulation_indexes = {}
 simulation_order = {}
