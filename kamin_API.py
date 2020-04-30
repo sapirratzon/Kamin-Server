@@ -394,7 +394,7 @@ def handle_next(request_data):
     if not ROOMS[room].is_simulation:
         socket_io.emit("error", data="next failed - Discussion is not a simulation", room=request.sid)
         return
-    if simulation_indexes[room] <= ROOMS[room].total_comments_num:
+    if simulation_indexes[room] < ROOMS[room].total_comments_num:
         simulation_indexes[room] += 1
     socket_io.emit("next", room=room)
 
