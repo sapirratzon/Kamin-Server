@@ -119,7 +119,8 @@ def get_active_users_configurations(discussion_id):
             if USERS[discussion_id].__contains__(user):
                 # TODO: error in this line no configuration for users_config[user]
                 config[user] = users_config[user]
-        return jsonify({"config": config}), 200
+        return config
+        # return jsonify({"config": config}), 200
     except Exception as e:
         app.logger.exception(e)
         abort(500, e)
@@ -318,6 +319,10 @@ def on_join(data):
     data["visualConfig"] = user_config
     socket_io.emit("join room", data=data, room=request.sid)
     socket_io.emit("user joined", data=username + " joined the discussion", room=room)
+    all_users = get_active_users_without_moderator(room)
+    socket_io.emit("new user", data=all_users, room=room)
+    all_users_visualizations_config = get_active_users_configurations(room)
+    socket_io.emit("new user config", data=all_users_visualizations_config, room=room)
 
 
 @socket_io.on('leave')
