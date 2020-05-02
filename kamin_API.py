@@ -327,11 +327,13 @@ def on_join(data):
 
 @socket_io.on('leave')
 def on_leave(data):
-    data = json.loads(data)
     room = data['discussionId']
     username = data['username']
     leave_room(room)
     USERS[room].pop(username)
+    if len(USERS[room]) == 0:
+        ROOMS.pop(room)
+        USERS.pop(room)
     socket_io.emit("user leave", data=username + " leaved the discussion", room=room)
 
 
