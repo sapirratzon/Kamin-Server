@@ -351,6 +351,7 @@ def add_alert(request_alert):
     alert_dict = json.loads(request_alert)
     room = alert_dict["discussionId"]
     response = discussion_controller.add_alert(alert_dict)
+    ROOMS[room].add_comment(response["comment"])
     extra_data = alert_dict["extra_data"]
     if extra_data["recipients_type"] == "parent":
         parent_user_name = discussion_controller.get_author_of_comment(alert_dict["parentId"])
@@ -399,7 +400,7 @@ def handle_next(request_data):
     if not ROOMS[room].is_simulation:
         socket_io.emit("error", data="next failed - Discussion is not a simulation", room=request.sid)
         return
-    if simulation_indexes[room] < ROOMS[room].total_comments_num:
+    if simulation_indexes[room] < ROOMS[room].total_comments_num + ROOMS[room].total_alerts_num:
         simulation_indexes[room] += 1
     socket_io.emit("next", room=room)
 
@@ -421,7 +422,7 @@ def handle_all(request_data):
     if not ROOMS[room].is_simulation:
         socket_io.emit("error", data="all failed - Discussion is not a simulation", room=request.sid)
         return
-    simulation_indexes[room] = ROOMS[room].total_comments_num
+    simulation_indexes[room] = ROOMS[room].total_comments_num + ROOMS[room].total_alerts_num
     socket_io.emit("all", room=room)
 
 

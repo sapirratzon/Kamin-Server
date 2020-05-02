@@ -1,4 +1,3 @@
-
 class Discussion:
 
     def __init__(self, *args, **kwargs):
@@ -8,9 +7,10 @@ class Discussion:
         self.root_comment_id = kwargs.get('root_comment_id', 0)
         self.num_of_participants = kwargs.get('num_of_participants', 0)
         self.total_comments_num = kwargs.get('total_comments_num', 0)
+        self.total_alerts_num = kwargs.get('total_alerts_num', 0)  # Do not change this!!! important for simulation
         self.is_simulation = kwargs.get('is_simulation', False)
         self.configuration = kwargs.get('configuration', {"vis_config": {"graph": True, "alerts": True,
-                                                          "statistics": True},
+                                                                         "statistics": True},
                                                           "extra_config": {}})
 
     def get_id(self):
@@ -63,14 +63,14 @@ class Discussion:
 
     def to_dict(self):
         return {
-                    'categories': self.categories,
-                    'title': self.title,
-                    'root_comment_id': self.root_comment_id,
-                    'num_of_participants': self.num_of_participants,
-                    'total_comments_num': self.total_comments_num,
-                    'is_simulation': self.is_simulation,
-                    'configuration': self.configuration
-                }
+            'categories': self.categories,
+            'title': self.title,
+            'root_comment_id': self.root_comment_id,
+            'num_of_participants': self.num_of_participants,
+            'total_comments_num': self.total_comments_num,
+            'is_simulation': self.is_simulation,
+            'configuration': self.configuration
+        }
 
 
 class DiscussionTree(Discussion):
@@ -91,6 +91,8 @@ class DiscussionTree(Discussion):
 
     def add_comment(self, comment):
         self.add_comment_recursive(self.root_comment, comment)
+        if comment.comment_type != "comment":
+            self.total_alerts_num += 1
 
     def add_comment_recursive(self, current_node, comment):
         if current_node.get_id() == comment.get_parent_id():

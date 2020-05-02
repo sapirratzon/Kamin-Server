@@ -29,27 +29,31 @@ class DiscussionController:
     def get_discussion(self, discussion_id):
         discussion, comments = self.db_management.get_discussion(discussion_id)
         root_comment_dict = comments[discussion["root_comment_id"]]
-        root_comment = self.get_comment_recursive(root_comment_dict, comments)
+        discussion["total_alerts_num"] = 0
+        root_comment = self.get_comment_recursive(root_comment_dict, comments, discussion)
         discussion_tree = DiscussionTree(title=discussion["title"], categories=discussion["categories"],
                                          num_of_participants=discussion["num_of_participants"],
                                          total_comments_num=discussion["total_comments_num"],
+                                         total_alerts_num=discussion["total_alerts_num"],
                                          is_simulation=discussion["is_simulation"],
                                          root_comment_id=discussion["root_comment_id"], root_comment=root_comment)
         return discussion_tree
 
-    def get_comment_recursive(self, comment_dict, comments):
+    def get_comment_recursive(self, comment_dict, comments, discussion):
         if len(comment_dict["child_comments"]) is 0:
             comment = CommentNode(id=comment_dict["_id"].binary.hex(), author=comment_dict["author"],
                                   text=comment_dict["text"], parent_id=comment_dict["parentId"],
                                   discussion_id=comment_dict["discussionId"], extra_data=comment_dict["extra_data"],
                                   depth=comment_dict["depth"], timestamp=comment_dict["timestamp"],
                                   child_comments=[], comment_type=comment_dict["comment_type"])
+            if comment.comment_type != "comment":
+                discussion["total_alerts_num"] += 1
             return comment
 
         child_list = []
         for comment_id in comment_dict["child_comments"]:
             child_comment_dict = comments[comment_id]
-            child_list.append(self.get_comment_recursive(child_comment_dict, comments))
+            child_list.append(self.get_comment_recursive(child_comment_dict, comments, discussion))
 
         comment = CommentNode(id=comment_dict["_id"].binary.hex(), author=comment_dict["author"],
                               text=comment_dict["text"], parent_id=comment_dict["parentId"],
@@ -81,7 +85,8 @@ class DiscussionController:
 
     def change_configuration(self, configuration_dict):
         comment = CommentNode(author=configuration_dict["author"], text=configuration_dict["text"],
-                              parent_id=configuration_dict["parentId"], discussion_id=configuration_dict["discussionId"],
+                              parent_id=configuration_dict["parentId"],
+                              discussion_id=configuration_dict["discussionId"],
                               depth=configuration_dict["depth"], comment_type="configuration", child_comments=[],
                               extra_data=configuration_dict["extra_data"])
         comment.set_id(self.db_management.add_comment(comment))
@@ -120,4 +125,3 @@ class DiscussionController:
 
     def get_discussion_moderator(self, discussion_id):
         return self.db_management.get_discussion_moderator(discussion_id)
-
