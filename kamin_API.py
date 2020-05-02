@@ -119,7 +119,8 @@ def get_active_users_configurations(discussion_id):
             if USERS[discussion_id].__contains__(user):
                 # TODO: error in this line no configuration for users_config[user]
                 config[user] = users_config[user]
-        return jsonify({"config": config}), 200
+        return config
+        # return jsonify({"config": config}), 200
     except Exception as e:
         app.logger.exception(e)
         abort(500, e)
@@ -318,15 +319,21 @@ def on_join(data):
     data["visualConfig"] = user_config
     socket_io.emit("join room", data=data, room=request.sid)
     socket_io.emit("user joined", data=username + " joined the discussion", room=room)
+    all_users = get_active_users_without_moderator(room)
+    socket_io.emit("new user", data=all_users, room=room)
+    all_users_visualizations_config = get_active_users_configurations(room)
+    socket_io.emit("new user config", data=all_users_visualizations_config, room=room)
 
 
 @socket_io.on('leave')
 def on_leave(data):
-    data = json.loads(data)
     room = data['discussionId']
     username = data['username']
     leave_room(room)
     USERS[room].pop(username)
+    if len(USERS[room]) == 0:
+        ROOMS.pop(room)
+        USERS.pop(room)
     socket_io.emit("user leave", data=username + " leaved the discussion", room=room)
 
 
@@ -346,6 +353,7 @@ def add_alert(request_alert):
     alert_dict = json.loads(request_alert)
     room = alert_dict["discussionId"]
     response = discussion_controller.add_alert(alert_dict)
+    ROOMS[room].add_comment(response["comment"])
     extra_data = alert_dict["extra_data"]
     if extra_data["recipients_type"] == "parent":
         parent_user_name = discussion_controller.get_author_of_comment(alert_dict["parentId"])
@@ -394,7 +402,7 @@ def handle_next(request_data):
     if not ROOMS[room].is_simulation:
         socket_io.emit("error", data="next failed - Discussion is not a simulation", room=request.sid)
         return
-    if simulation_indexes[room] < ROOMS[room].total_comments_num:
+    if simulation_indexes[room] < ROOMS[room].total_comments_num + ROOMS[room].total_alerts_num:
         simulation_indexes[room] += 1
     socket_io.emit("next", room=room)
 
@@ -416,7 +424,7 @@ def handle_all(request_data):
     if not ROOMS[room].is_simulation:
         socket_io.emit("error", data="all failed - Discussion is not a simulation", room=request.sid)
         return
-    simulation_indexes[room] = ROOMS[room].total_comments_num
+    simulation_indexes[room] = ROOMS[room].total_comments_num + ROOMS[room].total_alerts_num
     socket_io.emit("all", room=room)
 
 

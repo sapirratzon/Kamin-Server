@@ -2,7 +2,8 @@ import pymongo
 from bson.objectid import ObjectId
 from datetime import datetime
 
-client = pymongo.MongoClient("mongodb+srv://gal_kamin:gal123456@cluster0-erofa.mongodb.net/test?retryWrites=true&w=majority")
+client = pymongo.MongoClient(
+    "mongodb+srv://gal_kamin:gal123456@cluster0-erofa.mongodb.net/test?retryWrites=true&w=majority")
 
 kamin_db = client["kamindb"]
 
@@ -67,7 +68,6 @@ class DBManagement:
         # discussion statistics
         if comment.get_comment_type() == "comment":
             self.update_discussion_statistics(comment.get_discussion_id())
-
         return result.inserted_id.binary.hex()
 
     def update_user_statistics(self, comment):
@@ -112,7 +112,8 @@ class DBManagement:
         self.update_discussion(discussion_id, "total_comments_num", total_comments_num + 1)
 
     def get_user_discussion_statistics(self, username, discussion_id):
-        statistics = self.user_discussion_statistics_col.find_one({"username": username, "discussion_id": discussion_id})
+        statistics = self.user_discussion_statistics_col.find_one(
+            {"username": username, "discussion_id": discussion_id})
         if statistics is not None:
             total_words = statistics["total_words_num"]
             commented_users = dict(statistics["commented_users"])
@@ -149,7 +150,8 @@ class DBManagement:
                     max_responded_num = len(responded_users.keys())
             discussion_statistics = {"max_commented_user": max_commented_user, "max_commented_num": max_commented_num,
                                      "max_responded_user": max_responded_user, "max_responded_num": max_responded_num,
-                                     "num_of_participants": num_of_participants, "total_comments_num": total_comments_num}
+                                     "num_of_participants": num_of_participants,
+                                     "total_comments_num": total_comments_num}
         return discussion_statistics
 
     def update_discussion(self, discussion_id, col_to_set, updated_value):
@@ -176,15 +178,18 @@ class DBManagement:
         return
 
     def update_user_discussion_configuration(self, username, discussion_id, new_config):
-        configuration = self.user_discussion_configuration_col.find_one({"discussion_id": discussion_id, "username": username})
+        configuration = self.user_discussion_configuration_col.find_one(
+            {"discussion_id": discussion_id, "username": username})
         if configuration is not None:
             configuration = dict(configuration)
             for config in new_config:
                 configuration[config] = new_config[config]
-            self.user_discussion_configuration_col.update_one({"_id": ObjectId(configuration["_id"])}, {"$set": {"config": new_config}})
+            self.user_discussion_configuration_col.update_one({"_id": ObjectId(configuration["_id"])},
+                                                              {"$set": {"config": new_config}})
 
     def get_user_discussion_configuration(self, username, discussion_id):
-        configuration = self.user_discussion_configuration_col.find_one({"discussion_id": discussion_id, "username": username})
+        configuration = self.user_discussion_configuration_col.find_one(
+            {"discussion_id": discussion_id, "username": username})
         if configuration is not None:
             configuration = {"configuration": configuration["config"]}
         return configuration
@@ -234,4 +239,3 @@ class DBManagement:
 
     def delete_discussion_configurations(self, discussion_id):
         self.user_discussion_configuration_col.delete_many({"discussionId": discussion_id})
-
