@@ -131,7 +131,7 @@ def get_active_users_configurations(discussion_id):
     except Exception as e:
         app.logger.exception(e)
         abort(500, e)
-        
+
 
 @app.route('/api/getUsers', methods=['GET'])
 def get_users():
@@ -464,6 +464,7 @@ def change_order(request_data):
         socket_io.emit("error", data="Change simulation self-control failed - Discussion is not a simulation")
         return
     socket_io.emit("change simulation self control", data=request_data['isSelfControl'], room=room)
+
 
 if __name__ == '__main__':
     # app.debug = True
