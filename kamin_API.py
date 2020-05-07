@@ -325,8 +325,6 @@ def on_join(data):
     data["visualConfig"] = user_config
     socket_io.emit("join room", data=data, room=request.sid)
     socket_io.emit("user joined", data=username + " joined the discussion", room=room)
-    all_users = get_active_discussion_users(room)
-    socket_io.emit("new user", data=all_users, room=room)
     all_users_visualizations_config = get_active_users_configurations(room)
     socket_io.emit("new user config", data=all_users_visualizations_config, room=room)
 
@@ -361,15 +359,14 @@ def add_alert(request_alert):
     response = discussion_controller.add_alert(alert_dict)
     ROOMS[room].add_comment(response["comment"])
     extra_data = alert_dict["extra_data"]
-    if extra_data["recipients_type"] == "parent":
-        parent_user_name = discussion_controller.get_author_of_comment(alert_dict["parentId"])
-        socket_io.emit("new alert", data=response["comment"].to_client_dict(), room=USERS[room][parent_user_name])
-    elif extra_data["recipients_type"] == "all":
+    if extra_data["recipients_type"] == "all":
         socket_io.emit("new alert", data=response["comment"].to_client_dict(), room=room)
-    else:  # TODO: Check for list of users
+    else:
         recipients_users = extra_data["users_list"]
         for user in recipients_users:
             socket_io.emit("new alert", data=response["comment"].to_client_dict(), room=USERS[room][user])
+        moderator = discussion_controller.get_discussion_moderator(room)
+        socket_io.emit("new alert", data=response["comment"].to_client_dict(), room=USERS[room][moderator])
 
 
 @socket_io.on("change configuration")
@@ -387,7 +384,7 @@ def change_configuration(request_configuration):
             discussion_controller.update_user_discussion_configuration(user, room, users_dict["all"])
         socket_io.emit("new configuration", data=users_dict["all"], room=room)
     else:
-        for user in users_list:  # TODO: Check for list of users
+        for user in users_list:
             discussion_controller.update_user_discussion_configuration(user, room, users_dict[user])
             socket_io.emit("new configuration", data=users_dict[user], room=USERS[room][user])
 
