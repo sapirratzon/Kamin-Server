@@ -321,12 +321,11 @@ def on_join(data):
     socket_io.emit("join room", data=data, room=request.sid)
     socket_io.emit("user joined", data=username + " joined the discussion", room=room)
     disc_responded_users = get_active_discussion_users(room)
+    all_users_visualizations_config = get_active_users_configurations(room)
     moderators = get_active_moderators(room)
     for moderator in moderators:
         socket_io.emit("update active users", data=disc_responded_users, room=USERS[room][moderator])
-    disc_moderator = discussion_controller.get_discussion_moderator(room)
-    all_users_visualizations_config = get_active_users_configurations(room)
-    socket_io.emit("new user config", data=all_users_visualizations_config, room=USERS[room][disc_moderator])
+        socket_io.emit("new user config", data=all_users_visualizations_config, room=USERS[room][moderator])
 
 
 @socket_io.on('leave')
@@ -351,8 +350,9 @@ def add_comment(request_comment):
     response["comment"] = response["comment"].to_client_dict()
     socket_io.send(response, room=room)
     disc_responded_users = get_active_discussion_users(room)
-    moderator = discussion_controller.get_discussion_moderator(room)
-    socket_io.emit("update active users", data=list(disc_responded_users), room=USERS[room][moderator])
+    moderators = get_active_moderators(room)
+    for moderator in moderators:
+        socket_io.emit("update active users", data=disc_responded_users, room=USERS[room][moderator])
 
 
 @socket_io.on("add alert")
