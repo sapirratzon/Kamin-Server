@@ -36,6 +36,7 @@ class DiscussionController:
                                          total_comments_num=discussion["total_comments_num"],
                                          total_alerts_num=discussion["total_alerts_num"],
                                          is_simulation=discussion["is_simulation"],
+                                         configuration=discussion["configuration"],
                                          root_comment_id=discussion["root_comment_id"], root_comment=root_comment)
         return discussion_tree
 
