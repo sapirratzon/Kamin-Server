@@ -97,11 +97,23 @@ def get_active_users_without_moderator(discussion_id):
     return active_users
 
 
+def get_active_moderators(discussion_id):
+    active_moderators = []
+    active_users = get_active_users(discussion_id)
+    for user in active_users:
+        if user_controller.get_user(user).get_permission() != 1:
+            active_moderators.append(user)
+    return active_moderators
+
+
 @app.route('/api/getActiveDiscussionUsers/<string:discussion_id>', methods=['GET'])
 def get_active_discussion_users(discussion_id):
     try:
-        active_users = get_active_users_without_moderator(discussion_id)
-        return jsonify({'active_users': active_users}), 200
+        responded_users = discussion_controller.get_responded_users(discussion_id)
+        moderator = discussion_controller.get_discussion_moderator(discussion_id)
+        if responded_users.__contains__(moderator):
+            responded_users.remove(moderator)
+        return jsonify({'active_users': responded_users}), 200
     except Exception as e:
         app.logger.exception(e)
         abort(500, e)
@@ -111,20 +123,15 @@ def get_active_discussion_users(discussion_id):
 def get_active_users_configurations(discussion_id):
     try:
         config = {}
-        moderator = discussion_controller.get_discussion_moderator(discussion_id)
         users_config = discussion_controller.get_all_users_discussion_configurations(discussion_id)
-        if users_config.__contains__(moderator):
-            users_config.pop(moderator)
         for user in users_config:
             if USERS[discussion_id].__contains__(user):
-                # TODO: error in this line no configuration for users_config[user]
                 config[user] = users_config[user]
-        return config
-        # return jsonify({"config": config}), 200
+        return config, 200
     except Exception as e:
         app.logger.exception(e)
         abort(500, e)
-
+        
 
 @app.route('/api/getUsers', methods=['GET'])
 def get_users():
@@ -303,8 +310,6 @@ def on_join(data):
     USERS[room][username] = request.sid
     discussion_controller.add_user_discussion_statistics(username, room)
     discussion_json_dict = ROOMS[room].to_json_dict()
-    # TODO: why another call to the same func?
-    discussion_controller.add_user_discussion_statistics(username, room)
     data = {"discussionDict": discussion_json_dict}
     if ROOMS[room].is_simulation:
         if room not in simulation_indexes:
@@ -315,7 +320,8 @@ def on_join(data):
     user_config = discussion_controller.get_user_discussion_configuration(username, room)
     if user_config is None:
         user_config = ROOMS[room].get_configuration()["vis_config"]
-        discussion_controller.add_user_discussion_configuration(username, room, user_config)
+        user = user_controller.get_user(username)
+        discussion_controller.add_user_discussion_configuration(user, room, user_config)
     data["visualConfig"] = user_config
     socket_io.emit("join room", data=data, room=request.sid)
     socket_io.emit("user joined", data=username + " joined the discussion", room=room)
@@ -450,6 +456,14 @@ def change_order(request_data):
         simulation_order[room] = "regular"
     socket_io.emit("change_simulation_order", room=room)
 
+
+@socket_io.on("self control change")
+def change_order(request_data):
+    room = request_data['discussionId']
+    if not ROOMS[room].is_simulation:
+        socket_io.emit("error", data="Change simulation self-control failed - Discussion is not a simulation")
+        return
+    socket_io.emit("change simulation self control", data=request_data['isSelfControl'], room=room)
 
 if __name__ == '__main__':
     # app.debug = True
