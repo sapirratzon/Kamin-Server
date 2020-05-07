@@ -93,8 +93,8 @@ class DiscussionController:
         response = {"comment": comment}
         return response
 
-    def add_user_discussion_configuration(self, username, discussion_id, vis_config):
-        self.db_management.add_user_discussion_configuration(username, discussion_id, vis_config)
+    def add_user_discussion_configuration(self, user, discussion_id, vis_config):
+        self.db_management.add_user_discussion_configuration(user, discussion_id, vis_config)
 
     def update_user_discussion_configuration(self, username, discussion_id, new_config):
         self.db_management.update_user_discussion_configuration(username, discussion_id, new_config)
@@ -125,3 +125,7 @@ class DiscussionController:
 
     def get_discussion_moderator(self, discussion_id):
         return self.db_management.get_discussion_moderator(discussion_id)
+
+    def get_responded_users(self, discussion_id):
+        return self.db_management.get_responded_users(discussion_id)
+

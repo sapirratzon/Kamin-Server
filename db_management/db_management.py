@@ -1,9 +1,9 @@
 import pymongo
 from bson.objectid import ObjectId
 from datetime import datetime
+import db_config
 
-client = pymongo.MongoClient(
-    "mongodb+srv://gal_kamin:gal123456@cluster0-erofa.mongodb.net/test?retryWrites=true&w=majority")
+client = pymongo.MongoClient(db_config.config)
 
 kamin_db = client["kamindb"]
 
@@ -169,10 +169,10 @@ class DBManagement:
             self.update_discussion(discussion_id, "num_of_participants", disc_data["num_of_participants"] + 1)
         return
 
-    def add_user_discussion_configuration(self, username, discussion_id, vis_config):
-        result = self.get_user_discussion_configuration(username, discussion_id)
-        if result is None:
-            self.user_discussion_configuration_col.insert_one({"username": username,
+    def add_user_discussion_configuration(self, user, discussion_id, vis_config):
+        result = self.get_user_discussion_configuration(user.get_user_name(), discussion_id)
+        if result is None and user.get_permission() == 1:
+            self.user_discussion_configuration_col.insert_one({"username": user.get_user_name(),
                                                                "discussion_id": discussion_id,
                                                                "config": vis_config})
         return
@@ -239,3 +239,12 @@ class DBManagement:
 
     def delete_discussion_configurations(self, discussion_id):
         self.user_discussion_configuration_col.delete_many({"discussionId": discussion_id})
+
+    def get_responded_users(self, discussion_id):
+        comments = self.comment_col.find({"discussionId": discussion_id})
+        responded_users = []
+        for comment in comments:
+            responded_users.append(comment['author'])
+        return responded_users
+
+
