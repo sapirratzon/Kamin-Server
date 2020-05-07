@@ -1,9 +1,8 @@
 import pymongo
 from bson.objectid import ObjectId
 from datetime import datetime
-import db_config
 
-client = pymongo.MongoClient(db_config.config)
+client = pymongo.MongoClient("mongodb+srv://gal_kamin:gal123456@cluster0-erofa.mongodb.net/test?retryWrites=true&w=majority")
 
 kamin_db = client["kamindb"]
 
