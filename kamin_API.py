@@ -106,17 +106,12 @@ def get_active_moderators(discussion_id):
     return active_moderators
 
 
-@app.route('/api/getActiveDiscussionUsers/<string:discussion_id>', methods=['GET'])
 def get_active_discussion_users(discussion_id):
-    try:
-        responded_users = discussion_controller.get_responded_users(discussion_id)
-        moderator = discussion_controller.get_discussion_moderator(discussion_id)
-        if responded_users.__contains__(moderator):
-            responded_users.remove(moderator)
-        return jsonify({'active_users': list(responded_users)}), 200
-    except Exception as e:
-        app.logger.exception(e)
-        abort(500, e)
+    responded_users = discussion_controller.get_responded_users(discussion_id)
+    moderator = discussion_controller.get_discussion_moderator(discussion_id)
+    if responded_users.__contains__(moderator):
+        responded_users.remove(moderator)
+    return list(responded_users)
 
 
 @app.route('/api/getActiveUsersConfigurations/<string:discussion_id>', methods=['GET'])
@@ -326,10 +321,12 @@ def on_join(data):
     socket_io.emit("join room", data=data, room=request.sid)
     socket_io.emit("user joined", data=username + " joined the discussion", room=room)
     disc_responded_users = get_active_discussion_users(room)
-    moderator = discussion_controller.get_discussion_moderator(room)
-    socket_io.emit("update active users", data=list(disc_responded_users), room=USERS[room][moderator])
+    moderators = get_active_moderators(room)
+    for moderator in moderators:
+        socket_io.emit("update active users", data=disc_responded_users, room=USERS[room][moderator])
+    disc_moderator = discussion_controller.get_discussion_moderator(room)
     all_users_visualizations_config = get_active_users_configurations(room)
-    socket_io.emit("new user config", data=all_users_visualizations_config, room=USERS[room][moderator])
+    socket_io.emit("new user config", data=all_users_visualizations_config, room=USERS[room][disc_moderator])
 
 
 @socket_io.on('leave')
