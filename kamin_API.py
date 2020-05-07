@@ -325,7 +325,7 @@ def on_join(data):
     data["visualConfig"] = user_config
     socket_io.emit("join room", data=data, room=request.sid)
     socket_io.emit("user joined", data=username + " joined the discussion", room=room)
-    all_users = get_active_users_without_moderator(room)
+    all_users = get_active_discussion_users(room)
     socket_io.emit("new user", data=all_users, room=room)
     all_users_visualizations_config = get_active_users_configurations(room)
     socket_io.emit("new user config", data=all_users_visualizations_config, room=room)
