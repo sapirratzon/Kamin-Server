@@ -106,14 +106,15 @@ def get_active_moderators(discussion_id):
     return active_moderators
 
 
-@app.route('/api/getActiveDiscussionUsers/<string:discussion_id>', methods=['GET'])
-def get_active_discussion_users(discussion_id):
+@app.route('/api/getActiveDiscussionUsers', methods=['GET'])
+def get_active_discussion_users():
     try:
+        discussion_id = request.args.get('discussion_id')
         responded_users = discussion_controller.get_responded_users(discussion_id)
         moderator = discussion_controller.get_discussion_moderator(discussion_id)
         if responded_users.__contains__(moderator):
             responded_users.remove(moderator)
-        return jsonify({'active_users': responded_users}), 200
+        return jsonify({'active_users': list(responded_users)}), 200
     except Exception as e:
         app.logger.exception(e)
         abort(500, e)
