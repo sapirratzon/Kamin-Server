@@ -334,9 +334,9 @@ def on_leave(data):
     username = data['username']
     leave_room(room)
     USERS[room].pop(username)
-    if len(USERS[room]) == 0:
-        ROOMS.pop(room)
-        USERS.pop(room)
+    # if len(USERS[room]) == 0:
+    #     ROOMS.pop(room)
+    #     USERS.pop(room)
     socket_io.emit("user leave", data=username + " leaved the discussion", room=room)
 
 
