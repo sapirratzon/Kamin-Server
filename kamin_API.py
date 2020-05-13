@@ -319,7 +319,7 @@ def on_join(data):
         discussion_controller.add_user_discussion_configuration(user, room, user_config)
     data["visualConfig"] = user_config
     socket_io.emit("join room", data=data, room=request.sid)
-    socket_io.emit("user joined", data=username + " joined the discussion", room=room)
+    socket_io.emit("user joined", data=username, room=room)
     disc_responded_users = get_active_discussion_users(room)
     all_users_visualizations_config = get_active_users_configurations(room)
     moderators = get_active_moderators(room)
@@ -376,8 +376,9 @@ def add_alert(request_alert):
 def change_configuration(request_configuration):
     configuration_dict = json.loads(request_configuration)
     room = configuration_dict["discussionId"]
+    response = {}
     if not ROOMS[room].is_simulation:
-        discussion_controller.change_configuration(configuration_dict)
+        response = discussion_controller.change_configuration(configuration_dict)
     extra_data = configuration_dict["extra_data"]
     recipients_type = extra_data["recipients_type"]
     users_dict = dict(extra_data["users_list"])
@@ -386,6 +387,7 @@ def change_configuration(request_configuration):
         for user in get_active_users_without_moderator(room):
             discussion_controller.update_user_discussion_configuration(user, room, users_dict["all"])
         socket_io.emit("new configuration", data=users_dict["all"], room=room)
+        socket_io.emit("new alert", data=response["comment"].to_client_dict(), room=room)
     else:
         for user in users_list:
             discussion_controller.update_user_discussion_configuration(user, room, users_dict[user])
