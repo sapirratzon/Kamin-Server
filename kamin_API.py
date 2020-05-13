@@ -16,6 +16,7 @@ app.config['SECRET_KEY'] = 'the quick brown fox jumps over the lazy dog'
 ROOMS = {}  # dict to track active rooms
 simulation_indexes = {}
 simulation_order = {}
+simulation_control = {}
 USERS = {}
 
 # extensions
@@ -308,10 +309,12 @@ def on_join(data):
     data = {"discussionDict": discussion_json_dict}
     if ROOMS[room].is_simulation:
         if room not in simulation_indexes:
-            simulation_order[room] = "regular"
+            simulation_order[room] = "chronological"
+            simulation_control[room] = "off"
             simulation_indexes[room] = 1
         data["currentIndex"] = simulation_indexes[room]
         data["simulationOrder"] = simulation_order[room]
+        data["selfControl"] = simulation_control[room]
     user_config = discussion_controller.get_user_discussion_configuration(username, room)
     if user_config is None:
         user_config = ROOMS[room].get_configuration()["vis_config"]
@@ -337,6 +340,9 @@ def on_leave(data):
     if len(USERS[room]) == 0:
         ROOMS.pop(room)
         USERS.pop(room)
+        simulation_control.pop(room)
+        simulation_order.pop(room)
+        simulation_indexes.pop(room)
     socket_io.emit("user leave", data=username + " leaved the discussion", room=room)
 
 
@@ -412,7 +418,9 @@ def handle_next(request_data):
         return
     if simulation_indexes[room] < ROOMS[room].total_comments_num + ROOMS[room].total_alerts_num:
         simulation_indexes[room] += 1
-    socket_io.emit("next", room=room)
+        socket_io.emit("next", room=room)
+    else:
+        socket_io.emit("error", data="back failed - out of bound", room=request.sid)
 
 
 @socket_io.on("back")
@@ -423,7 +431,10 @@ def handle_back(request_data):
         return
     if simulation_indexes[room] > 1:
         simulation_indexes[room] -= 1
-    socket_io.emit("back", room=room)
+        socket_io.emit("back", room=room)
+    else:
+        socket_io.emit("error", data="back failed - out of bound", room=request.sid)
+
 
 
 @socket_io.on("all")
@@ -456,17 +467,22 @@ def change_order(request_data):
         simulation_order[room] = "chronological"
     else:
         simulation_order[room] = "regular"
+    simulation_indexes[room] = 1
     socket_io.emit("change_simulation_order", room=room)
 
 
 @socket_io.on("self control change")
-def change_order(request_data):
+def change_control(request_data):
     room = request_data['discussionId']
     if not ROOMS[room].is_simulation:
-        socket_io.emit("error", data="Change simulation self-control failed - Discussion is not a simulation")
+        socket_io.emit("error", data="change sim control failed - Discussion is not a simulation")
         return
-    socket_io.emit("change simulation self control", data=request_data['isSelfControl'], room=room)
-
+    if simulation_control[room]:
+        simulation_control[room] = "off"
+    else:
+        simulation_control[room] = "on"
+    simulation_indexes[room] = 1
+    socket_io.emit("change simulation control", room=room)
 
 if __name__ == '__main__':
     # app.debug = True
