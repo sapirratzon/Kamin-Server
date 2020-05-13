@@ -477,12 +477,12 @@ def change_control(request_data):
     if not ROOMS[room].is_simulation:
         socket_io.emit("error", data="change sim control failed - Discussion is not a simulation")
         return
-    if simulation_control[room]:
+    if simulation_control[room] == "on":
         simulation_control[room] = "off"
     else:
         simulation_control[room] = "on"
-    simulation_indexes[room] = 1
-    socket_io.emit("change simulation control", room=room)
+        simulation_indexes[room] = 1
+    socket_io.emit("change_simulation_control", room=room)
 
 if __name__ == '__main__':
     # app.debug = True
