@@ -458,7 +458,7 @@ def change_order(request_data):
 
 
 @socket_io.on("self control change")
-def change_order(request_data):
+def change_control(request_data):
     room = request_data['discussionId']
     if not ROOMS[room].is_simulation:
         socket_io.emit("error", data="Change simulation self-control failed - Discussion is not a simulation")
