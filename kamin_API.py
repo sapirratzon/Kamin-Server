@@ -338,8 +338,10 @@ def on_leave(data):
     leave_room(room)
     USERS[room].pop(username)
     if len(USERS[room]) == 0:
-        ROOMS.pop(room)
-        USERS.pop(room)
+        if room in ROOMS:
+            ROOMS.pop(room)
+        if room in USERS:
+            USERS.pop(room)
         simulation_control.pop(room)
         simulation_order.pop(room)
         simulation_indexes.pop(room)
@@ -374,8 +376,9 @@ def add_alert(request_alert):
         recipients_users = extra_data["users_list"]
         for user in recipients_users:
             socket_io.emit("new alert", data=response["comment"].to_client_dict(), room=USERS[room][user])
-        moderator = discussion_controller.get_discussion_moderator(room)
-        socket_io.emit("new alert", data=response["comment"].to_client_dict(), room=USERS[room][moderator])
+        moderators = get_active_moderators(room)
+        for moderator in moderators:
+            socket_io.emit("new alert", data=response["comment"].to_client_dict(), room=USERS[room][moderator])
 
 
 @socket_io.on("change configuration")
@@ -434,7 +437,6 @@ def handle_back(request_data):
         socket_io.emit("back", room=room)
     else:
         socket_io.emit("error", data="back failed - out of bound", room=request.sid)
-
 
 
 @socket_io.on("all")
