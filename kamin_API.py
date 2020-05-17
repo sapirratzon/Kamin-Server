@@ -90,14 +90,6 @@ def get_active_users(discussion_id):
     return active_users
 
 
-def get_active_users_without_moderator(discussion_id):
-    active_users = get_active_users(discussion_id)
-    moderator = discussion_controller.get_discussion_moderator(discussion_id)
-    if active_users.__contains__(moderator):
-        active_users.remove(moderator)
-    return active_users
-
-
 def get_active_moderators(discussion_id):
     active_moderators = []
     active_users = get_active_users(discussion_id)
@@ -109,9 +101,6 @@ def get_active_moderators(discussion_id):
 
 def get_active_discussion_users(discussion_id):
     responded_users = discussion_controller.get_responded_users(discussion_id)
-    moderator = discussion_controller.get_discussion_moderator(discussion_id)
-    if responded_users.__contains__(moderator):
-        responded_users.remove(moderator)
     return list(responded_users)
 
 
@@ -393,7 +382,7 @@ def change_configuration(request_configuration):
     users_dict = dict(extra_data["users_list"])
     users_list = users_dict.keys()
     if recipients_type == "all":
-        for user in get_active_users_without_moderator(room):
+        for user in get_active_users(room):
             discussion_controller.update_user_discussion_configuration(user, room, users_dict["all"])
         socket_io.emit("new configuration", data=users_dict["all"], room=room)
         socket_io.emit("new alert", data=response["comment"].to_client_dict(), room=room)
