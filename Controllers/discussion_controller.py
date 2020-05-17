@@ -1,5 +1,6 @@
 from Entities.analysis_data import AnalysisData
 from Entities.comment import CommentNode
+from Sentiment.sentiment_analyzer import SentimentAnalyzer
 
 from db_management.db_management import DBManagement
 from Entities.new_discussion import Discussion, DiscussionTree
@@ -7,7 +8,7 @@ from Entities.new_discussion import Discussion, DiscussionTree
 
 class DiscussionController:
     db_management = DBManagement()
-
+    sentiment_analyzer = SentimentAnalyzer()
     def create_discussion(self, title, categories, root_comment_dict, configuration):
         disc = Discussion(title=title, categories=categories, root_comment_id=None, num_of_participants=0,
                           total_comments_num=0, is_simulation=False, configuration=configuration)
@@ -69,6 +70,7 @@ class DiscussionController:
                               depth=comment_dict["depth"], comment_type="comment", child_comments=[])
         # Call KaminAI
         # KaminAI(comment)
+        comment.extra_data['sentiment'] = self.sentiment_analyzer.simple_analysis(comment.text)
         comment.set_id(self.db_management.add_comment(comment))
         response = {"comment": comment}  # , "KaminAIresult": kamin_response
 
