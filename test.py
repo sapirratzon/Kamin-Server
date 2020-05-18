@@ -47,8 +47,8 @@ def get_discussions():
     return dc.get_discussions(False)
 
 
-# discussion_path = 'resources\\discussions\\80919_labeled_trees.txt'
-discussion_path = 'C:\\Users\\ronel\\PycharmProjects\\Kamin-Server\\discussion_json.txt'
+discussion_path = 'resources\\discussions\\80919_labeled_trees.txt'
+# discussion_path = 'C:\\Users\\ronel\\PycharmProjects\\Kamin-Server\\discussion_json.txt'
 trees = tt.load_list_of_trees(discussion_path)
 print(trees)
 # for i in range(0, 10):
