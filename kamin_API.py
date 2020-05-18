@@ -212,6 +212,23 @@ def get_discussion(discussion_id):
         return
 
 
+@app.route('/api/download/<string:discussion_id>', methods=['GET'])
+@auth.login_required
+def download(discussion_id):
+    try:
+        discussion_tree = discussion_controller.get_discussion(discussion_id)
+        if discussion_tree is None:
+            raise Exception("discussion_id is not exist!")
+        discussion_json_dict = discussion_tree.to_json_dict()
+        csv = discussion_tree.to_csv()
+        return jsonify(
+            {"discussion": discussion_json_dict['discussion'], "tree": discussion_json_dict['tree'], "csv": csv})
+    except IOError as e:
+        app.logger.exception(e)
+        abort(400)
+        return
+
+
 @app.route('/api/getDiscussions/<string:is_simulation>', methods=['GET'])
 @auth.login_required
 def get_discussions(is_simulation):
@@ -295,6 +312,8 @@ def on_join(data):
     USERS[room][username] = request.sid
     discussion_controller.add_user_discussion_statistics(username, room)
     discussion_json_dict = ROOMS[room].to_json_dict()
+    with open('discussion_json.txt', 'w+') as file:
+        json.dump(discussion_json_dict["tree"], file)
     data = {"discussionDict": discussion_json_dict}
     if ROOMS[room].is_simulation:
         if room not in simulation_indexes:
@@ -474,6 +493,7 @@ def change_control(request_data):
         simulation_control[room] = "on"
         simulation_indexes[room] = 1
     socket_io.emit("change_simulation_control", room=room)
+
 
 if __name__ == '__main__':
     # app.debug = True

@@ -125,3 +125,16 @@ class CommentNode(Comment):
             "extra_data": self.extra_data,
             "comment_type": self.comment_type
         }
+
+    def to_csv_record(self):
+        return [
+            self._id,
+            self.author,
+            self.text,
+            self.parent_id,
+            self.discussion_id,
+            self.depth,
+            self.timestamp,
+            self.extra_data,
+            self.comment_type
+            ]

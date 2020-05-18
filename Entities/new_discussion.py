@@ -1,3 +1,6 @@
+import pandas as pd
+
+
 class Discussion:
 
     def __init__(self, *args, **kwargs):
@@ -89,19 +92,64 @@ class DiscussionTree(Discussion):
         discussion_json_tree = tree_to_json(self.root_comment)
         return {'discussion': discussion, 'tree': discussion_json_tree}
 
-    def add_comment(self, comment):
-        self.add_comment_recursive(self.root_comment, comment)
-        if comment.comment_type != "comment":
-            self.total_alerts_num += 1
+    def to_csv(self):
+        records = []
+        first_record = self.root_comment.to_csv_record()
+        i = 1
+        first_record.insert(3, "")
+        first_record.insert(5, str(0))
+        records.append(first_record)
+        target_author = self.root_comment.author
+        for child in self.root_comment.child_comments:
+            to_csv_record_list(child, target_author, i, None, records)
+        df = pd.DataFrame(records,
+                          columns=["id", "author", "text", "target user", "parent_id", "branch id", "discussion id",
+                                   "depth",
+                                   "timestamp", "extra_data", "comment_type"])
 
-    def add_comment_recursive(self, current_node, comment):
-        if current_node.get_id() == comment.get_parent_id():
-            current_node.add_child_comment(comment)
-            return
+        return df.to_csv()
 
-        [self.add_comment_recursive(child, comment) for child in current_node.get_child_comments()]
+
+"""
+ "id": self._id,
+            "author": self.author,
+            "text": self.text,
+            "parentId": self.parent_id,
+            "discussionId": self.discussion_id,
+            "depth": self.depth,
+            "timestamp": self.timestamp,
+            "extra_data": self.extra_data,
+            "comment_type": self.comment_type
+"""
+
+
+def add_comment(self, comment):
+    self.add_comment_recursive(self.root_comment, comment)
+    if comment.comment_type != "comment":
+        self.total_alerts_num += 1
+
+
+def add_comment_recursive(self, current_node, comment):
+    if current_node.get_id() == comment.get_parent_id():
+        current_node.add_child_comment(comment)
+        return
+
+    [self.add_comment_recursive(child, comment) for child in current_node.get_child_comments()]
 
 
 def tree_to_json(comment_node):
     return {'node': comment_node.to_client_dict(),
             'children': [tree_to_json(child) for child in comment_node.get_child_comments()]}
+
+
+def to_csv_record_list(comment_node, target_author, parent_branch, child_index, records):
+    branch_id = str(parent_branch) + '.' + str(child_index) if child_index else str(parent_branch)
+    csv_record = comment_node.to_csv_record()
+    csv_record.insert(3, target_author)
+    csv_record.insert(5, branch_id)
+    records.append(csv_record)
+    target_author = comment_node.author
+    i = 1
+    for child in comment_node.child_comments:
+        to_csv_record_list(child, target_author, branch_id, i, records)
+        i += 1

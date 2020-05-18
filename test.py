@@ -47,11 +47,13 @@ def get_discussions():
     return dc.get_discussions(False)
 
 
-discussion_path = 'resources\\discussions\\80919_labeled_trees.txt'
+# discussion_path = 'resources\\discussions\\80919_labeled_trees.txt'
+discussion_path = 'C:\\Users\\ronel\\PycharmProjects\\Kamin-Server\\discussion_json.txt'
 trees = tt.load_list_of_trees(discussion_path)
-for i in range(0, 10):
-    curr_tree = trees[i]
-    create_discussion_on_db(curr_tree)
+print(trees)
+# for i in range(0, 10):
+#     curr_tree = trees[i]
+#     create_discussion_on_db(curr_tree)
 # discussions = get_discussions()
 # discussion = get_discussion_from_db()
 # json_dict = discussion.to_json_dict()
