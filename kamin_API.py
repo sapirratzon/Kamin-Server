@@ -247,9 +247,9 @@ def get_discussions(is_simulation):
 def create_discussion():
     try:
         user = g.user
-        if (user.get_permission() is not Permission.MODERATOR.value) and (
-                user.get_permission() is not Permission.ROOT.value):
-            raise Exception("User not permitted to create discussion!")
+        # if (user.get_permission() is not Permission.MODERATOR.value) and (
+        #         user.get_permission() is not Permission.ROOT.value):
+        #     raise Exception("User not permitted to create discussion!")
         data = dict(request.json)
         if not data.keys().__contains__("title") or data["title"] is None:
             raise Exception("Title is missing, can't create discussion!")

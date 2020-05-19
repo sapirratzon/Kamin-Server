@@ -109,32 +109,17 @@ class DiscussionTree(Discussion):
 
         return df.to_csv()
 
+    def add_comment(self, comment):
+        self.add_comment_recursive(self.root_comment, comment)
+        if comment.comment_type != "comment":
+            self.total_alerts_num += 1
 
-"""
- "id": self._id,
-            "author": self.author,
-            "text": self.text,
-            "parentId": self.parent_id,
-            "discussionId": self.discussion_id,
-            "depth": self.depth,
-            "timestamp": self.timestamp,
-            "extra_data": self.extra_data,
-            "comment_type": self.comment_type
-"""
+    def add_comment_recursive(self, current_node, comment):
+        if current_node.get_id() == comment.get_parent_id():
+            current_node.add_child_comment(comment)
+            return
 
-
-def add_comment(self, comment):
-    self.add_comment_recursive(self.root_comment, comment)
-    if comment.comment_type != "comment":
-        self.total_alerts_num += 1
-
-
-def add_comment_recursive(self, current_node, comment):
-    if current_node.get_id() == comment.get_parent_id():
-        current_node.add_child_comment(comment)
-        return
-
-    [self.add_comment_recursive(child, comment) for child in current_node.get_child_comments()]
+        [self.add_comment_recursive(child, comment) for child in current_node.get_child_comments()]
 
 
 def tree_to_json(comment_node):
