@@ -56,15 +56,15 @@ def new_user():
         first_name = request.json.get('first_name')
         last_name = request.json.get('last_name')
         if username is None or password is None:
-            raise Exception("username or password is Missing, can't create new user!")
+            raise Exception("username or password is missing, can't create new user!")
         if user_controller.get_user(username=username) is not None:
-            raise Exception("username is already exist, can't create new user!")
+            raise Exception("username already exists, can't create new user!")
         user_id = user_controller.add_new_user(username=username, password=password, first_name=first_name,
                                                last_name=last_name)
         return jsonify({'user_id': user_id}), 200
     except Exception as e:
         app.logger.exception(e)
-        abort(500, e)
+        abort(400, e)
 
 
 # TODO: this is not safe in production
