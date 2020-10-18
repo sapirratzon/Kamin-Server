@@ -27,7 +27,7 @@ It contains an API for transfering data to Kamin-Client, and managing the applic
     ```
 And kamin server will run at http://localhost:5000/
 
-Start Kamin-Client to see the interface being used to show the data, instructions at https://github.com/RonElhar/Kamin-Client see README
+Start Kamin-Client to see the interface being used to show the data, instructions at https://github.com/sapirratzon/Kamin-Client see README
 
 ## Curse Bot
 In the project root directory you can find a file called curse_bot.py, a bot which integrates to the application and performs the following:
